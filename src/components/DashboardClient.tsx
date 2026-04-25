@@ -111,7 +111,7 @@ export default function DashboardClient({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <LiveLink href="/impact-mondial" icon={<Compass className="w-4 h-4" />} title="Impact mondial" desc="La constellation des intentions" />
           <LiveLink href="/silence" icon={<Moon className="w-4 h-4" />} title="Mode Silence" desc="Couper Aria et le monde" />
-          <ComingSoon icon={<Sparkles className="w-4 h-4" />} title="Aria Chat" desc="L'IA qui agit, pas qui répond (P5)" />
+          <LiveLink href="/aria" icon={<Sparkles className="w-4 h-4" />} title="Aria" desc="Comprend, propose, exécute, apprend" />
         </div>
       </section>
 

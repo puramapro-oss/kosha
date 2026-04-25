@@ -1,21 +1,22 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 18:25
-**Phase completed** : P4 ✅ (VIDA SOCIAL livré : feed positif + cercles + Mode Silence)
-**Next session** : P5 — VIDA IA Aria (chat plein écran SSE streaming + mémoire cognitive + anticipation)
+**Last session ended** : 2026-04-25 19:30
+**Phase completed** : P5 ✅ (VIDA IA Aria livré : chat SSE streaming + mémoire cognitive + auto-title + RGPD)
+**Next session** : P6 — VIDA MISSIONS (missions rémunérées : actions positives → € ou Points)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1 + P2 + P3 + P4 livrés et live
+## ✅ P1 + P2 + P3 + P4 + P5 livrés et live
 - **Web** : https://kosha.purama.dev → 200
-- **GitHub** : https://github.com/puramapro-oss/kosha (commit `b660a50`)
+- **GitHub** : https://github.com/puramapro-oss/kosha
 - **Vercel** : puramapro-oss-projects/kosha
-- **Latest deploy** : `kosha-1tbhlz398-puramapro-oss-projects.vercel.app`
-- **Build** : 33 routes, 0 erreur TS, 1 warning cosmétique
-- **DB** : schema `kosha` avec 18 tables (P1-P4)
-- **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (7 events)
+- **Latest deploy** : `kosha-oz1hr4cib-puramapro-oss-projects.vercel.app`
+- **Build** : 36 routes, 0 erreur TS, warnings cosmétiques uniquement
+- **DB** : schema `kosha` avec 23 tables (P1-P5 : +5 Aria — conversations, messages, user_memory, actions_log, cache)
+- **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (8 events)
 - **Modération IA Aria** : opérationnelle (Haiku rapide, 8 catégories)
+- **Tests E2E** : **18/18 PASS** (P1-P5 complet, durée 2m48s)
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -23,8 +24,8 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P5** : tables aria_conversations/messages/memory + SSE streaming chat
-6. **NEVER** recoder ce qui marche en P1+P2+P3+P4
+5. **Continuer P6** : tables missions, completions, organizations, mission_funds + UI /missions + admin /org
+6. **NEVER** recoder ce qui marche en P1-P5
 
 ---
 
@@ -46,12 +47,13 @@
 
 ## ⚠️ Risques / TODO
 
-- ❗ **UAT P3** : Tissma doit créer 1 cagnotte (wizard 4 steps), faire un don test
-- ❗ **UAT P4** : Tissma doit publier 1 post normal (published), 1 post limite ("X est nul" → blocked attendu), créer 1 cercle, le rejoindre via 2nd compte, configurer Mode Silence
-- ❗ **UAT P1+P2** toujours en attente
-- TODO P5 : VAPID Web Push keys (générer via `npx web-push generate-vapid-keys`)
-- TODO P5 : Tables aria_conversations + messages + memory + actions_log + cache 24h
-- TODO P5 : `/aria` chat plein écran + SSE streaming + sélection auto modèle
+- ✅ **UAT P1+P2+P3+P4+P5** : 18/18 tests Playwright PASS sur prod live (cf e2e/RAPPORT_UAT.md + e2e/uat-aria.spec.ts)
+- ✅ **Stripe E2E webhook** : signature HMAC autonome → contribution + cagnotte raised + split 70/15/5/10 + fil_de_vie + impact (3 tests)
+- ✅ **P5 Aria livré** : tables (5) + APIs SSE/CRUD/oubli-moi + pages chat plein écran + auto-title + mémoire cognitive + Fil de Vie auto
+- TODO P6 : Tables missions/completions/organizations/mission_funds + UI /missions + /org/dashboard
+- TODO P11 : VAPID Web Push keys (générer via `npx web-push generate-vapid-keys`) — pour notifs push web
+- TODO ARIA : cache 24h Upstash KV (skip P5 — implémentable plus tard sans casser l'existant)
+- TODO ARIA : suggestions contextuelles dashboard (anticipation interface — annoncé P5.5 du plan, deferred à P11 polish)
 - ⚠️ /profile bundle = 338 kB (Recharts) → P5 design polish
 - ⚠️ /feed + /cagnottes/* bundles ~316-319 kB — code-split possible
 - ⚠️ Vercel preview env : STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET pas synced (production OK)
