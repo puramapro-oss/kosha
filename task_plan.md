@@ -155,13 +155,28 @@
 
 ---
 
-## P9 — VIDA NEWSLETTER (~1h) — PENDING
+## P9 — VIDA NEWSLETTER (~1h) — ✅ COMPLETED 2026-04-25
 
-- [ ] P9.1 Tables (newsletter_subscribers, newsletter_emails, user_actions)
-- [ ] P9.2 Template Resend HTML responsive (6 blocs)
-- [ ] P9.3 CRON weekly (lundi 9h, Aria génère perso)
-- [ ] P9.4 Tracking taux d'action (pas juste ouverture)
-- [ ] P9.5 Désabonnement 1 clic
+- [x] P9.1 SQL : 2 tables (newsletter_subscribers UNIQUE token désabo + newsletter_emails UNIQUE user+week_iso, blocs JSONB) + trigger after_profile_insert auto-création + backfill idempotent + RLS strict
+- [x] P9.2 Lib newsletter.ts : computeWeeklySnapshot (réel DB), generateNewsletterContent (Aria Sonnet, Zod validé, 6 blocs FIXES anti-AI-slop), renderNewsletterHTML (responsive dark + List-Unsubscribe RFC 8058), sendWeeklyNewsletter (anti-doublon par UNIQUE), currentWeekIso ISO 8601
+- [x] P9.3 4 APIs : POST /api/cron/newsletter-weekly (Bearer + dry_run + limit + détails), GET /api/newsletter/action/[id] (track + 302 anti-open-redirect), GET+POST /api/newsletter/unsubscribe?token (RFC 8058 One-Click), POST /api/newsletter/subscribe (toggle authed)
+- [x] P9.4 Tracking : action_taken_at posé au 1er clic via tracker — métrique = taux d'action (pas juste taux d'ouverture)
+- [x] P9.5 Désabonnement 1 clic : token UNIQUE par user, GET = 302 vers /u/[token]?ok=1, POST = JSON {ok:true} (RFC 8058), pas d'auth requise → un seul clic suffit
+- [x] Pages : /settings/newsletter (toggle + 8 derniers numéros + status envoyé/ouvert/action) + /u/[token] publique (3 états : invalide / encore abonné / désabonné)
+- [x] Middleware : allowlist /u/* (page publique avec token)
+- [x] Dashboard : nouveau LiveLink Newsletter
+- [x] Tests E2E uat-newsletter.spec.ts : 4/4 PASS (settings render+toggle, action tracker idempotent, unsub via token + RFC 8058 One-Click, page /u/ public sans auth)
+
+**GATE P9 ✅** :
+- Build : 51 routes (+6 vs P8), 0 erreur TS
+- Live : /settings/newsletter → 307 (auth), /u/[invalid] → 200 (page publique), /api/newsletter/subscribe → 401 sans auth, /api/newsletter/unsubscribe?token=X → 302
+- 4/4 UAT PASS sur prod live
+- Trigger auto-création subscriber row à chaque nouveau profile (testé : token visible immédiatement)
+- 6 blocs FIXES Aria : ou_on_en_est | impact_declenche | idee_qui_eleve | action_vida | trace_personnelle | fermeture_calme
+- Anti open-redirect dans tracker : safeNext refuse `//` et URLs absolues
+- List-Unsubscribe One-Click headers ajoutés (compat Gmail/Outlook 1-click natif)
+
+**Note CRON** : `CRON_SECRET` env var pas encore set en prod (TODO P11 avec config n8n lundi 9h Europe/Paris). En attendant, le CRON refuse 401 — bonne posture sécurité par défaut.
 
 ---
 
