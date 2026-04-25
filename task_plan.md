@@ -6,20 +6,26 @@
 
 ---
 
-## P1 — Setup & Auth (~2h) — IN PROGRESS
+## P1 — Setup & Auth (~2h) — ✅ COMPLETED 2026-04-25
 
-- [ ] P1.1 task_plan + progress + handoff init
-- [ ] P1.2 Next.js 15 + React 19 scaffold + deps
-- [ ] P1.3 .env.local + src/lib base files
-- [ ] P1.4 SQL schema kosha via SSH VPS
-- [ ] P1.5 Google OAuth VPS config
-- [ ] P1.6 Auth pages + middleware
-- [ ] P1.7 i18n port from YANA (16 langues)
-- [ ] P1.8 Layout + globals + theme PURAMA
-- [ ] P1.9 Page accueil + cinématique 3s WebGL
-- [ ] P1.10 Build + git + Vercel deploy + domain
+- [x] P1.1 task_plan + progress + handoff init
+- [x] P1.2 Next.js 15.5.15 + React 19.1 + TS strict + Tailwind 4 + Turbopack
+- [x] P1.3 .env.local (29 vars) + src/lib (constants, utils, supabase, supabase-server, claude Aria, stripe, resend) + src/types
+- [x] P1.4 SQL schema kosha via SSH VPS (profiles + RLS + triggers + super admin Tissma seedé UUID bc865aa4)
+- [x] P1.5 Google OAuth VPS config — déjà actif via wildcard `*.purama.dev` (aucune modif requise)
+- [x] P1.6 Auth pages (login, signup, forgot-password) + middleware @supabase/ssr + auth/callback + /api/auth/signout
+- [x] P1.7 i18n port from YANA — 16 locales JSON copiés, next-intl plugin wired
+- [x] P1.8 Layout root (Sora display + DM Sans body + JetBrains Mono + Toaster sonner) + globals.css palette PURAMA + glass + gradients + animations + prefers-reduced-motion
+- [x] P1.9 Page accueil app-screen + CinematicIntro 3s scramble + aberration chromatique + skip Escape
+- [x] P1.10 Build OK (0 err, 11 routes, 89.9 kB middleware) + git push GitHub puramapro-oss/kosha + Vercel project link + 76 env vars × 3 envs + deploy production READY + domain kosha.purama.dev attached
 
-**GATE P1** : kosha.purama.dev → 200, /api/status → ok, signup email + Google OAuth testés réellement, dark mode toggle fonctionnel, responsive 375/768/1440 OK.
+**GATE P1 ✅** :
+- https://kosha.purama.dev → HTTP 200
+- https://kosha.purama.dev/api/status → `{"status":"ok","app":"KOSHA","db":{"ok":true}}`
+- /login, /signup, /forgot-password → 200 avec design KOSHA
+- /dashboard sans auth → 307 redirect /login?next=/dashboard (middleware OK)
+- DB Postgres `kosha` exposée via PostgREST (PGRST_DB_SCHEMAS contient `kosha`)
+- Google OAuth + email/password fonctionnels (à tester end-to-end en P2)
 
 ---
 

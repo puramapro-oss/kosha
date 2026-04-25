@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# planning files (contain secrets — see ~/purama/.env.secrets for shared store)
+BRIEF.md
+CLAUDE.md
+CLAUDE-2.md
+.tmp_planning/
+db/
+
