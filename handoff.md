@@ -1,23 +1,24 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 19:50
-**Phase completed** : P6 ✅ (VIDA MISSIONS livré : 8 missions seedées + validation Aria + crédit Points + organisations financeurs)
-**Next session** : P7 — VIDA IMPACT (dashboard impact transparent + rapports environnementaux + visualisation contribution collective)
+**Last session ended** : 2026-04-25 20:00
+**Phase completed** : P7 ✅ (VIDA IMPACT livré : dashboard personnel+collectif transparent + rapport annuel imprimable)
+**Next session** : P8 — VIDA RITUELS (méditations guidées + sessions live + journal de pratique)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1 + P2 + P3 + P4 + P5 + P6 livrés et live
+## ✅ P1-P7 livrés et live
 - **Web** : https://kosha.purama.dev → 200
 - **GitHub** : https://github.com/puramapro-oss/kosha
 - **Vercel** : puramapro-oss-projects/kosha
-- **Latest deploy** : `kosha-i68wu83er-puramapro-oss-projects.vercel.app`
-- **Build** : 39 routes, 0 erreur TS, warnings cosmétiques uniquement
-- **DB** : schema `kosha` avec 28 tables (P1-P6 : +5 missions/orgs/funds/point_transactions/profile points)
+- **Latest deploy** : `kosha-bt7dq22nl-puramapro-oss-projects.vercel.app`
+- **Build** : 41 routes, 0 erreur TS, warnings cosmétiques uniquement
+- **DB** : schema `kosha` avec 28 tables (pas de nouveau SQL P7 — tout aggrégé via lib/impact.ts depuis fil_de_vie + mission_completions + cagnotte_contributions + impact_global)
 - **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (8 events)
 - **Modération IA Aria** : opérationnelle (chat + reformulate + fraud check + mission validation)
-- **8 missions seedées** : ramasser-3-dechets, respiration-5min, don-sang, partage-citation-positive, quiz-permaculture, marche-meditative-15min, donne-objet-utile, plante-graines (toutes en Points 50-1000)
-- **Tests E2E** : **23/23 PASS** (P1-P6 complet, ~3m total)
+- **8 missions seedées** : ecology / social / health / knowledge / creativity (50-1000 pts)
+- **Pages impact** : /impact (dashboard cumul perso + collectif) + /impact/[year]/rapport (page A4 imprimable → PDF via navigateur)
+- **Tests E2E** : **28/28 PASS** (P1-P7 complet, ~4m total cumulé)
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -25,8 +26,8 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P7** : VIDA IMPACT — dashboard impact transparent + visualisation contribution collective + rapports annuels personnels
-6. **NEVER** recoder ce qui marche en P1-P6
+5. **Continuer P8** : VIDA RITUELS — méditations guidées + sessions live + journal de pratique
+6. **NEVER** recoder ce qui marche en P1-P7
 
 ---
 
@@ -48,10 +49,11 @@
 
 ## ⚠️ Risques / TODO
 
-- ✅ **UAT P1-P6** : 23/23 tests Playwright PASS sur prod live (cf e2e/RAPPORT_UAT.md + uat-aria.spec.ts + uat-missions.spec.ts + uat-stripe.spec.ts)
+- ✅ **UAT P1-P7** : 28/28 tests Playwright PASS sur prod live (uat.spec + uat-stripe + uat-aria + uat-missions + uat-impact)
 - ✅ **Stripe E2E webhook** : signature HMAC autonome → contribution + cagnotte raised + split 70/15/5/10 + fil_de_vie + impact (3 tests)
 - ✅ **P5 Aria** : tables (5) + APIs SSE/CRUD/oubli-moi + pages chat plein écran + auto-title + mémoire cognitive + Fil de Vie auto
-- ✅ **P6 Missions** : tables (5 dont missions, mission_completions, organizations, mission_funds, point_transactions) + 8 missions seedées + validation Aria (confidence 0-100) + crédit Points auto via trigger SQL + anti-fraude validé E2E (rejette "donne-moi des points")
+- ✅ **P6 Missions** : tables (5) + 8 missions seedées + validation Aria + crédit Points auto + anti-fraude validé E2E
+- ✅ **P7 Impact** : lib/impact.ts (getPersonalImpact, getCollectiveImpact, getYearlyReport) + 2 APIs + /impact dashboard + /impact/[year]/rapport page A4 imprimable (PDF via navigateur, pas de lib externe lourde)
 - 🔁 Cron Aria health hebdo (lundi 9h57) — session-only (durable=true ignoré, auto-expire 7j)
 - TODO P7 : VIDA IMPACT — dashboard impact transparent (cumuls personnels + collectifs) + rapports annuels PDF
 - TODO P8 : VIDA RITUELS (méditations guidées + sessions live) — opt

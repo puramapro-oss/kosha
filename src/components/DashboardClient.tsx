@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart, Sparkles, Compass, MessageSquare, Users, Moon, Leaf } from 'lucide-react'
+import { Heart, Sparkles, Compass, MessageSquare, Users, Moon, Leaf, BarChart3 } from 'lucide-react'
 import ScoreHumaniteJauge from './ScoreHumaniteJauge'
 import FilDeVieTimeline from './FilDeVieTimeline'
 import MomentWow from './MomentWow'
@@ -114,6 +114,7 @@ export default function DashboardClient({
           <LiveLink href="/aria" icon={<Sparkles className="w-4 h-4" />} title="Aria" desc="Comprend, propose, exécute, apprend" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <LiveLink href="/impact" icon={<BarChart3 className="w-4 h-4" />} title="Impact" desc="Ton empreinte personnelle + collective transparente" />
           <LiveLink href="/silence" icon={<Moon className="w-4 h-4" />} title="Mode Silence" desc="Couper Aria et le monde" />
         </div>
       </section>
