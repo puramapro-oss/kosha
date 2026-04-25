@@ -127,3 +127,37 @@
 - Fallback graceful : try/catch → return version brute + `degraded: true`
 - Fraud freeze auto si recommendation === 'freeze' OR score >= 70
 - Toujours log fraud_signal pour audit + admin review
+
+## Modération IA pré-publish (P4 pattern)
+- `moderatePost(content, { type })` → `{ score, status, reason, categories, raw_score }`
+- Status auto : `< 30 = published` (immediat), `30-69 = pending_review` (caché feed public, l'auteur voit), `>= 70 = blocked` (raison FR montrée à l'auteur)
+- INSERT post avec status correspondant (pas d'INSERT user direct — toujours service role après modération)
+- Prompt système doit être EXPLICITE sur la nuance vulnérabilité (douleur honnête != toxicité) sinon faux-positifs sur partages sincères
+- Fallback graceful : si Aria down → status='pending_review' + reason="modération IA temporairement indisponible"
+
+## RLS deny INSERT user (pattern KOSHA pour content modéré)
+- Pas de policy INSERT pour user → seul service role peut insérer (après modération côté API)
+- Pattern : auth check + Zod + modération → INSERT via createServiceClient (bypasse RLS)
+- Sécurise contre les bypass JS clients qui essaieraient d'insérer directement dans posts/cagnottes
+
+## Réactions toggle pattern (P4)
+- UNIQUE (post_id, user_id, type) en DB → impossible de doubler
+- API : check existing → DELETE si oui, INSERT si non — réponse `{ action: 'added' | 'removed' }`
+- Optimistic UI client : update state AVANT fetch, rollback si fail
+- Trigger SQL `after_reaction_insert/delete` maintient `posts.reactions_count` → 0 logique côté API
+
+## Plage horaire qui chevauche minuit (P4 pattern)
+- Si `start_hour > end_hour` (ex: 22h → 7h) → la plage couvre minuit
+- Helper : `if (start < end) return h >= start && h < end; return h >= start || h < end;`
+- Toujours afficher hint UI quand l'user choisit une plage qui chevauche
+
+## Trigger anti-overflow membres (P4 pattern)
+- RLS seul ne suffit pas (race condition entre check et insert)
+- Trigger AFTER INSERT compte réel + RAISE EXCEPTION si > max → atomique en transaction
+- Côté API : retourner 409 + message FR si la transaction échoue avec le RAISE
+
+## Type union + SQL CHECK alignement (CRITIQUE)
+- Toute extension du type union TS `FilDeVieActionType` (ou similaires) DOIT s'accompagner de :
+  1. ALTER constraint SQL DROP + ADD avec UNION complète (oublier 1 valeur = INSERT échoue à la première utilisation)
+  2. Update du `Record<TypeUnion, ...>` (ACTION_VISUALS ou équivalent) — sinon erreur TS "missing properties"
+- Toujours commit code + SQL ensemble, jamais l'un sans l'autre

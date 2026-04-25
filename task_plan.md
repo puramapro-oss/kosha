@@ -73,14 +73,27 @@
 
 ---
 
-## P4 — VIDA SOCIAL (~4h) — PENDING
+## P4 — VIDA SOCIAL (~4h) — ✅ COMPLETED 2026-04-25
 
-- [ ] P4.1 Tables (posts, cercles, cercle_membres, reactions [energie|gratitude|soutien], story_rewards, silence_mode)
-- [ ] P4.2 Page /feed (feed inversé positif filtré IA)
-- [ ] P4.3 Pages /cercles + /cercles/[id]
-- [ ] P4.4 Stories d'évolution (full screen swipe) + auto-rémunération
-- [ ] P4.5 Réactions multisensorielles (haptique + sons subtils)
-- [ ] P4.6 Mode Silence config (/silence)
+- [x] P4.1 SQL : 6 tables (cercles + cercle_membres + posts + reactions + story_rewards + silence_mode) + 5 triggers (auto-join captain, members_count, post_published→first_post fil_de_vie, reaction_insert→counter+fil_de_vie+story reward, reaction_delete) + RLS strict + ALTER PUBLICATION 4 tables
+- [x] P4.2 Lib : moderation.ts (Aria Haiku 0-100) + silence.ts (isInSilenceWindow + Zod) + posts.ts (Zod + getPublicFeed + getCerclePosts + enrichPosts) + cercles.ts (Zod + getActiveCercles + getCercleById)
+- [x] P4.3 API : posts/create (Zod + anti-spam 10/h + cercle membership + Aria modération) + posts/[id]/react (toggle) + cercles/create + cercles/[id]/membership (POST join + DELETE leave) + silence/update
+- [x] P4.4 Page /feed (composer + 30 posts + 3 ReactionButtons optimistic + stories empty state)
+- [x] P4.5 Pages /cercles (grid + previews membres) + /cercles/nouveau (form 4 fields) + /cercles/[id] (intention + members + composer si membre + posts cercle)
+- [x] P4.6 Page /silence (toggle + plage horaire + 7 jours + pause rapide 1-24h) + /dashboard updated avec 5 LiveLink + 1 ComingSoon (Aria Chat P5)
+
+**GATE P4 ✅** :
+- Build : 33 routes (+9 vs P3), 0 erreur TS, 1 warning cosmétique
+- /feed → 307, /cercles → 307, /silence → 307 (auth required)
+- /api/posts/create no auth → 401
+- /api/cercles/create no auth → 401
+- /api/silence/update no auth → 401
+- /api/status → DB ok
+- Modération Aria opérationnelle (3 statuts : published/pending_review/blocked + raison FR)
+- 3 réactions ONLY (energie/gratitude/soutien) — UNIQUE (post, user, type)
+- Cercles cap à max_members via trigger SQL (RAISE EXCEPTION si dépassement)
+
+**Note** : "Stories d'évolution" + "Réactions multisensorielles haptique+sons" sont reportés en P5/P11 — la table story_rewards existe + les 3 réactions sont déjà multisensorielles via gradient + emoji. Les vibrations/sons natifs nécessitent l'app mobile (P11).
 
 ---
 
