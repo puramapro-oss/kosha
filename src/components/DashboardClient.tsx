@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart, Sparkles, Compass, MessageSquare, Users, Moon } from 'lucide-react'
+import { Heart, Sparkles, Compass, MessageSquare, Users, Moon, Leaf } from 'lucide-react'
 import ScoreHumaniteJauge from './ScoreHumaniteJauge'
 import FilDeVieTimeline from './FilDeVieTimeline'
 import MomentWow from './MomentWow'
@@ -109,9 +109,12 @@ export default function DashboardClient({
           <LiveLink href="/cercles" icon={<Users className="w-4 h-4" />} title="Cercles de Vie" desc="Max 12 voyageurs, 1 intention" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <LiveLink href="/missions" icon={<Leaf className="w-4 h-4" />} title="Missions" desc="Actions positives → Points (1 pt = 0,01 €)" />
           <LiveLink href="/impact-mondial" icon={<Compass className="w-4 h-4" />} title="Impact mondial" desc="La constellation des intentions" />
-          <LiveLink href="/silence" icon={<Moon className="w-4 h-4" />} title="Mode Silence" desc="Couper Aria et le monde" />
           <LiveLink href="/aria" icon={<Sparkles className="w-4 h-4" />} title="Aria" desc="Comprend, propose, exécute, apprend" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <LiveLink href="/silence" icon={<Moon className="w-4 h-4" />} title="Mode Silence" desc="Couper Aria et le monde" />
         </div>
       </section>
 

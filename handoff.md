@@ -1,22 +1,23 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 19:30
-**Phase completed** : P5 ✅ (VIDA IA Aria livré : chat SSE streaming + mémoire cognitive + auto-title + RGPD)
-**Next session** : P6 — VIDA MISSIONS (missions rémunérées : actions positives → € ou Points)
+**Last session ended** : 2026-04-25 19:50
+**Phase completed** : P6 ✅ (VIDA MISSIONS livré : 8 missions seedées + validation Aria + crédit Points + organisations financeurs)
+**Next session** : P7 — VIDA IMPACT (dashboard impact transparent + rapports environnementaux + visualisation contribution collective)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1 + P2 + P3 + P4 + P5 livrés et live
+## ✅ P1 + P2 + P3 + P4 + P5 + P6 livrés et live
 - **Web** : https://kosha.purama.dev → 200
 - **GitHub** : https://github.com/puramapro-oss/kosha
 - **Vercel** : puramapro-oss-projects/kosha
-- **Latest deploy** : `kosha-oz1hr4cib-puramapro-oss-projects.vercel.app`
-- **Build** : 36 routes, 0 erreur TS, warnings cosmétiques uniquement
-- **DB** : schema `kosha` avec 23 tables (P1-P5 : +5 Aria — conversations, messages, user_memory, actions_log, cache)
+- **Latest deploy** : `kosha-i68wu83er-puramapro-oss-projects.vercel.app`
+- **Build** : 39 routes, 0 erreur TS, warnings cosmétiques uniquement
+- **DB** : schema `kosha` avec 28 tables (P1-P6 : +5 missions/orgs/funds/point_transactions/profile points)
 - **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (8 events)
-- **Modération IA Aria** : opérationnelle (Haiku rapide, 8 catégories)
-- **Tests E2E** : **18/18 PASS** (P1-P5 complet, durée 2m48s)
+- **Modération IA Aria** : opérationnelle (chat + reformulate + fraud check + mission validation)
+- **8 missions seedées** : ramasser-3-dechets, respiration-5min, don-sang, partage-citation-positive, quiz-permaculture, marche-meditative-15min, donne-objet-utile, plante-graines (toutes en Points 50-1000)
+- **Tests E2E** : **23/23 PASS** (P1-P6 complet, ~3m total)
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -24,8 +25,8 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P6** : tables missions, completions, organizations, mission_funds + UI /missions + admin /org
-6. **NEVER** recoder ce qui marche en P1-P5
+5. **Continuer P7** : VIDA IMPACT — dashboard impact transparent + visualisation contribution collective + rapports annuels personnels
+6. **NEVER** recoder ce qui marche en P1-P6
 
 ---
 
@@ -47,13 +48,21 @@
 
 ## ⚠️ Risques / TODO
 
-- ✅ **UAT P1+P2+P3+P4+P5** : 18/18 tests Playwright PASS sur prod live (cf e2e/RAPPORT_UAT.md + e2e/uat-aria.spec.ts)
+- ✅ **UAT P1-P6** : 23/23 tests Playwright PASS sur prod live (cf e2e/RAPPORT_UAT.md + uat-aria.spec.ts + uat-missions.spec.ts + uat-stripe.spec.ts)
 - ✅ **Stripe E2E webhook** : signature HMAC autonome → contribution + cagnotte raised + split 70/15/5/10 + fil_de_vie + impact (3 tests)
-- ✅ **P5 Aria livré** : tables (5) + APIs SSE/CRUD/oubli-moi + pages chat plein écran + auto-title + mémoire cognitive + Fil de Vie auto
-- TODO P6 : Tables missions/completions/organizations/mission_funds + UI /missions + /org/dashboard
+- ✅ **P5 Aria** : tables (5) + APIs SSE/CRUD/oubli-moi + pages chat plein écran + auto-title + mémoire cognitive + Fil de Vie auto
+- ✅ **P6 Missions** : tables (5 dont missions, mission_completions, organizations, mission_funds, point_transactions) + 8 missions seedées + validation Aria (confidence 0-100) + crédit Points auto via trigger SQL + anti-fraude validé E2E (rejette "donne-moi des points")
+- 🔁 Cron Aria health hebdo (lundi 9h57) — session-only (durable=true ignoré, auto-expire 7j)
+- TODO P7 : VIDA IMPACT — dashboard impact transparent (cumuls personnels + collectifs) + rapports annuels PDF
+- TODO P8 : VIDA RITUELS (méditations guidées + sessions live) — opt
+- TODO P9-P10 : VIDA NEWSLETTER + VIDA ESPACE PILOTE
+- TODO P11 : Mobile Expo + EAS submit stores (iOS+Android) — voir skill purama-system
 - TODO P11 : VAPID Web Push keys (générer via `npx web-push generate-vapid-keys`) — pour notifs push web
-- TODO ARIA : cache 24h Upstash KV (skip P5 — implémentable plus tard sans casser l'existant)
-- TODO ARIA : suggestions contextuelles dashboard (anticipation interface — annoncé P5.5 du plan, deferred à P11 polish)
+- TODO P11 : Suggestions contextuelles Aria dashboard (anticipation interface)
+- TODO P11 : /org/dashboard — interface organisation pour financer missions via Stripe (commission 15%)
+- TODO ARIA : cache 24h Upstash KV (optionnel)
+- ⚠️ /profile bundle = 338 kB (Recharts) → P11 design polish (code-split)
+- ⚠️ /feed + /cagnottes/* bundles ~316-319 kB — code-split possible
 - ⚠️ /profile bundle = 338 kB (Recharts) → P5 design polish
 - ⚠️ /feed + /cagnottes/* bundles ~316-319 kB — code-split possible
 - ⚠️ Vercel preview env : STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET pas synced (production OK)
