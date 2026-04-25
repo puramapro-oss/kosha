@@ -1,24 +1,25 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 20:25
-**Phase completed** : P8 ✅ (VIDA RITUELS livré : rituel hebdo planétaire + 6 thèmes cycliques + Aria variations + live counter realtime)
-**Next session** : P9 — VIDA NEWSLETTER (Living Newsletter™ — 1 email = 1 action réelle, hebdo via Resend + n8n)
+**Last session ended** : 2026-04-25 20:36
+**Phase completed** : P9 ✅ (VIDA NEWSLETTER livré : Living Newsletter™ 6 blocs Aria + désabo 1 clic RFC 8058)
+**Next session** : P10 — VIDA ESPACE PILOTE (back-office admin Tissma : KPI globaux + users + cagnottes + payouts influenceurs + modif prix/textes/features temps réel)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1-P8 livrés et live
+## ✅ P1-P9 livrés et live
 - **Web** : https://kosha.purama.dev → 200
 - **GitHub** : https://github.com/puramapro-oss/kosha
 - **Vercel** : puramapro-oss-projects/kosha
-- **Latest deploy** : `kosha-qjrhce1c3-puramapro-oss-projects.vercel.app`
-- **Build** : 45 routes, 0 erreur TS, warnings cosmétiques uniquement
-- **DB** : schema `kosha` avec 30 tables (P8 : +rituels_calendar +rituel_participations + fonction ensure_rituels_calendar + 8 rituels seedés)
+- **Latest deploy** : `kosha-hpfmfo2my-puramapro-oss-projects.vercel.app`
+- **Build** : 51 routes, 0 erreur TS, warnings cosmétiques uniquement
+- **DB** : schema `kosha` avec 32 tables (P9 : +newsletter_subscribers +newsletter_emails + trigger after_profile_insert_newsletter + backfill auto)
 - **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (8 events)
-- **Modération IA Aria** : opérationnelle (chat + reformulate + fraud check + mission validation + variations rituels)
-- **8 missions seedées** + **8 rituels seedés** (W17→W24, cycle 6 thèmes : depollution/paix/amour/pardon/gratitude/abondance)
-- **Page /rituels** : hero glass + countdown live + intention textarea + bouton participer (+30 pts, fil_de_vie auto) + live counter realtime + calendrier 6 prochains
-- **Tests E2E** : **32/32 PASS** (P1-P8 complet)
+- **Aria** : chat + reformulate + fraud check + mission validation + rituel variations + newsletter 6-blocs perso (Sonnet)
+- **Page /settings/newsletter** : toggle + 8 derniers numéros + status envoyé/ouvert/action
+- **Page /u/[token]** publique : 3 états (invalide / encore abonné / désabonné) + réabo en 1 clic
+- **CRON-ready** : POST /api/cron/newsletter-weekly (Bearer secret + dry_run + limit + détails par user)
+- **Tests E2E** : **36/36 PASS** (P1-P9 complet, ~5min cumulé)
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -26,10 +27,13 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P9** : VIDA NEWSLETTER (template Resend HTML 6 blocs + CRON hebdo lundi 9h Aria perso + tracking taux d'action + désabo 1 clic)
-6. **NEVER** recoder ce qui marche en P1-P8
+5. **Continuer P10** : VIDA ESPACE PILOTE — back-office admin Tissma seulement (triple vérif JWT + email + role super_admin) avec KPIs (users, MRR, cagnottes, impact, dons), modif dynamique prix/textes/features, validation payouts influenceurs, accès séparé influenceurs (vue ses propres ventes/commissions/codes)
+6. **NEVER** recoder ce qui marche en P1-P9
 
-**TODO P11** : configurer le CRON n8n weekly pour POST `/api/cron/rituels-tick` lundi 00:05 UTC avec `Authorization: Bearer ${CRON_SECRET}` (env CRON_SECRET pas encore set en prod — à générer + vercel env add).
+**TODO P11** :
+- Configurer CRON n8n weekly pour POST `/api/cron/newsletter-weekly` lundi 9h Europe/Paris + `/api/cron/rituels-tick` lundi 00:05 UTC, tous deux avec `Authorization: Bearer ${CRON_SECRET}`
+- Générer `CRON_SECRET` (`openssl rand -hex 32`) + `vercel env add` (prod + preview)
+- Vérifier domaine email Resend `noreply@purama.dev` (DKIM/SPF/DMARC dans DNS via Hostinger)
 
 ---
 
