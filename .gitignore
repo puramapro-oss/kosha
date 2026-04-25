@@ -47,3 +47,8 @@ CLAUDE-2.md
 .tmp_planning/
 db/
 
+
+# UAT Playwright
+e2e/test-results/
+e2e/screenshots/
+e2e/logs/
