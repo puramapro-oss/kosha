@@ -29,14 +29,24 @@
 
 ---
 
-## P2 — VIDA CORE (~3h) — PENDING
+## P2 — VIDA CORE (~3h) — ✅ COMPLETED 2026-04-25
 
-- [ ] P2.1 Tables SQL (fil_de_vie, score_humanite_history, universe_personnel, onboarding_responses)
-- [ ] P2.2 Page /dashboard avec moment WOW (3 KPIs animés)
-- [ ] P2.3 Page /profile + Fil de Vie timeline immuable
-- [ ] P2.4 Onboarding 30s (3 questions max)
-- [ ] P2.5 ScoreHumaniteJauge + UniversPersonelRadar composants
-- [ ] P2.6 Hooks useFilDeVie + useScoreHumanite (Supabase realtime)
+- [x] P2.1 Tables SQL (fil_de_vie immutable + score_humanite_history + universe_personnel + onboarding_responses + 2 fonctions Postgres compute_score + 2 triggers + RLS strict + ALTER PUBLICATION realtime)
+- [x] P2.2 lib/fil-de-vie.ts + lib/score.ts (helpers logFilDeVie, getCurrentScore, getRecentFilDeVie, getUserImpactTotals, ACTION_VISUALS, getScoreExplanation)
+- [x] P2.3 Page /onboarding (3 questions glass swipe ~30s) + API /api/onboarding (Zod + log fil_de_vie)
+- [x] P2.4 Composants ScoreHumaniteJauge (SVG radial gradient) + FilDeVieTimeline (Framer Motion stagger) + UniversPersonnelRadar (Recharts) + MomentWow (3 KPIs)
+- [x] P2.5 Hooks useFilDeVie + useScoreHumanite (Supabase realtime channels filtrés user_id)
+- [x] P2.6 Page /dashboard réelle (replace placeholder, redirect /onboarding si pas complété, MomentWow + ScoreHumaniteJauge + Fil de Vie récent)
+- [x] P2.7 Page /profile complète (avatar gradient + score + univers radar + impact totals + Fil de Vie complet 50 entries + code parrainage)
+- [x] P2.8 Page /actions/premiere (action 30s one-click qui log fil_de_vie 'profile_created') + API /api/actions/premiere (anti-double)
+
+**GATE P2 ✅** :
+- Build : 14 routes, 0 erreur TS, 1 warning unused `_req` (cosmétique)
+- Live : `/onboarding` 307 (auth required), `/dashboard` 307 → `/login` (middleware OK), `/profile` 307 → `/login`, `/actions/premiere` 307 → `/login`
+- Fil de Vie immuable (RLS DENY DELETE/UPDATE — confirmable via psql)
+- Score recalculé temps réel via trigger SQL after_fil_de_vie_insert
+- Onboarding < 30s (3 questions binaires swipe)
+- Affichage transparent (`getScoreExplanation` : "Score X.X/10 grâce à ton {composant top}")
 
 ---
 

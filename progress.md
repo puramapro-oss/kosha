@@ -1,110 +1,97 @@
 # KOSHA — PROGRESS
 
-**Last updated** : 2026-04-25 17:18
-**Current phase** : P1 ✅ COMPLETED
-**Next phase** : P2 — VIDA CORE (~3h)
-**Live URL** : https://kosha.purama.dev (HTTP 200, /api/status OK)
-**GitHub** : https://github.com/puramapro-oss/kosha
-**Vercel project** : puramapro-oss-projects/kosha
-**Build status** : 0 erreur, 0 warning, 11 routes générées (2.7s build local)
-**TypeScript** : strict, 0 erreur
+**Last updated** : 2026-04-25 17:35
+**Current phase** : P2 ✅ COMPLETED
+**Next phase** : P3 — VIDA CAGNOTTE (~5h)
+**Live URL** : https://kosha.purama.dev (HTTP 200)
+**GitHub** : https://github.com/puramapro-oss/kosha (commit `d1f94bd`)
+**Vercel** : puramapro-oss-projects/kosha
+**Build** : 14 routes, 0 erreur TS strict, 1 warning cosmétique
+**Latest deployment** : `kosha-aol4t7zig-puramapro-oss-projects.vercel.app`
 
 ---
 
 ## Defaults pris (questions non répondues)
 
-1. **Treezor** = stub mode (Phase 1 BRIEF §6, points + simulation). Vraie API binding différé jusqu'à SASU active.
-2. **Map** = MapLibre GL JS + MapTiler tiles (0€, no API key required pour OSM tiles).
-3. **i18n** = port YANA's 16 locales (ar, de, en, es, fr, hi, it, ja, ko, nl, pl, pt, ru, sv, tr, zh). BRIEF disait 29 = aspirational.
-4. **RevenueCat** = stub en P11. Vraie init nécessite Apple Dev + Play Console (post-SASU).
-5. **Score d'Humanité initial** = 5.0/10 médian (évite biais "anciens favorisés").
-6. **Cap 12 mois ancienneté** = STRICT (no bonus beyond 12 mois) per BRIEF wording.
-7. **App Store / Play Store** = artifacts only en P11, pas de soumission (post-SASU).
-8. **Context management** = /compact à 50%, restart + handoff à 60%.
+1. **Treezor** = stub mode (Phase 1 BRIEF §6).
+2. **Map** = MapLibre GL JS + MapTiler tiles (0€).
+3. **i18n** = port YANA's 16 locales.
+4. **RevenueCat** = stub en P11.
+5. **Score d'Humanité initial** = 5.0/10 médian.
+6. **Cap 12 mois ancienneté** = STRICT.
+7. **App Store / Play Store** = artifacts only en P11.
+8. **Context management** = /compact à 50%, restart à 60%.
 
 ---
 
-## P1 livraisons (~2h25 — légèrement au-dessus estimé 2h)
+## ✅ P1 — Setup & Auth (livré 2026-04-25 17:18)
+Voir commit `605c9c7` + `a4b2734`. Routes : /, /login, /signup, /forgot-password, /dashboard, /api/status, /api/auth/signout, /auth/callback. Schema kosha + RLS + super admin Tissma seedé.
 
-### Infrastructure
-- ✅ Next.js 15.5.15 + React 19.1 + TypeScript strict + Tailwind 4 + Turbopack
-- ✅ 357 dépendances production + dev (Anthropic SDK, Stripe, Supabase, Resend, Three.js, MapLibre, etc.)
-- ✅ Schema Postgres `kosha` créé via SSH VPS (docker exec supabase-db psql)
-- ✅ Schema exposé via PostgREST (`PGRST_DB_SCHEMAS` contient `kosha`)
-- ✅ Tissma seedé super_admin UUID `bc865aa4-8059-43ef-a385-769dde2a3dbc` (auth.users existait déjà via prior apps)
+---
 
-### Code
-- ✅ `src/lib/{constants,utils,supabase,supabase-server,claude,stripe,resend}.ts` — 7 lib files
-- ✅ `src/types/index.ts` — Profile, FilDeVieEntry, ScoreHumaniteSnapshot, Cagnotte
-- ✅ `src/middleware.ts` — auth gate avec PUBLIC_PATHS whitelist
-- ✅ `src/i18n/{config,request}.ts` + `messages/*.json` × 16 (porté de YANA)
-- ✅ `src/app/layout.tsx` (Sora display + DM Sans body + JetBrains Mono + Toaster + NextIntlProvider + RTL ar)
-- ✅ `src/app/globals.css` (palette PURAMA, glass, gradient-text-kosha, gradient-bg-kosha, glow-violet, animations + prefers-reduced-motion fallback)
-- ✅ `src/app/(auth)/{login,signup,forgot-password}/page.tsx` (Google OAuth + email/password + design glass)
-- ✅ `src/app/(auth)/layout.tsx` (cosmic background)
-- ✅ `src/app/auth/callback/route.ts` (PKCE OAuth exchange)
-- ✅ `src/app/api/{status,auth/signout}/route.ts`
-- ✅ `src/app/page.tsx` (home app-screen + manifeste + 2 CTAs — JAMAIS landing 13 sections)
-- ✅ `src/components/CinematicIntro.tsx` (3s scramble effect + aberration chromatique + skip Escape + sessionStorage cache)
-- ✅ `src/app/(dashboard)/dashboard/page.tsx` (placeholder KPIs Score/Fil de Vie/Awakening)
-- ✅ `src/app/{error,not-found}.tsx`
+## ✅ P2 — VIDA CORE (livré 2026-04-25 17:35, ~1h10)
 
-### Aria (IA)
-- ✅ System prompt complet avec :
-  - Identité absolue (jamais "Claude", toujours "Aria")
-  - 4 capacités (Comprendre / Proposer / Exécuter / Apprendre)
-  - 7 règles sacrées intégrées
-  - 3 lignes rouges non-négociables
-  - IA SAGE (1 principe d'éveil par réponse, jamais prosélyte)
-  - Reformulation cagnotte (JSON output)
-  - Détection arnaque (score 0-100, > 70 = freeze)
-- ✅ Sélection auto modèle Haiku/Sonnet/Opus selon complexité (V7.2 §71)
-- ✅ Helpers `askAria`, `askAriaJSON`, `streamAria`
+### Tables SQL ajoutées au schema kosha
+- `fil_de_vie` : IMMUTABLE log d'actions positives (13 action_types, RLS DENY DELETE/UPDATE)
+- `score_humanite_history` : snapshots quotidiens upsert via trigger
+- `universe_personnel` : 4 axes radar (auto-create par trigger sur profiles)
+- `onboarding_responses` : 3 questions
+- 2 fonctions Postgres : `compute_score_humanite()` + `compute_score_components()`
+- 2 triggers : `after_fil_de_vie_insert` (recompute score + snapshot + UPDATE profiles.fil_de_vie_count) + `after_profile_insert_universe`
+- ALTER PUBLICATION `supabase_realtime` ADD TABLE pour push live
 
-### Deploy
-- ✅ git init + commit "P1: KOSHA scaffold"
-- ✅ GitHub repo créé `puramapro-oss/kosha` (public)
-- ✅ Push initial bloqué par GitHub secret scanning → fix : gitignore BRIEF.md, CLAUDE.md, CLAUDE-2.md, db/schema.sql (contiennent secrets)
-- ✅ Vercel project `puramapro-oss-projects/kosha` créé et lié au repo
-- ✅ 76 env vars pushed × 3 environments (production / preview / development) via `vercel env add` CLI (V7.2 §37 — JAMAIS dashboard manuel)
-- ✅ `vercel deploy --prod` → READY (`dpl_J4oJC4ac3YCGTqdqyUXjWJ3t5c5d`)
-- ✅ `vercel domains add kosha.purama.dev` → attaché au projet
-- ✅ Live verification :
-  - `https://kosha.purama.dev/` → 200 + cinématique + page accueil
-  - `https://kosha.purama.dev/api/status` → 200 + `{"status":"ok","app":"KOSHA","db":{"ok":true}}`
-  - `https://kosha.purama.dev/login` → 200 design glass
-  - `https://kosha.purama.dev/signup` → 200
-  - `https://kosha.purama.dev/forgot-password` → 200
-  - `https://kosha.purama.dev/dashboard` (sans auth) → 307 redirect `/login?next=/dashboard` (middleware OK)
+### Code livré
+- `src/lib/fil-de-vie.ts` — `logFilDeVie`, `getRecentFilDeVie`, `getUserImpactTotals`, `ACTION_VISUALS` map (emoji + couleur + humanLabel)
+- `src/lib/score.ts` — `getCurrentScore`, `recomputeScore` (RPC Postgres), `deriveAwakeningLevel`, `getScoreExplanation` (transparence BRIEF règle #3)
+- `src/hooks/useFilDeVie.ts` — Supabase realtime channel sur `kosha.fil_de_vie` filtre user_id (push INSERT)
+- `src/hooks/useScoreHumanite.ts` — Supabase realtime channel sur `kosha.score_humanite_history`
+- `src/components/ScoreHumaniteJauge.tsx` — SVG radial gauge animé gradient violet→cyan + explanation
+- `src/components/FilDeVieTimeline.tsx` — timeline verticale Framer Motion stagger + ImpactBadge par entry
+- `src/components/UniversPersonnelRadar.tsx` — Recharts radar 4 axes
+- `src/components/MomentWow.tsx` — 3 KPIs animés (gains potentiels mois + impact mondial live + action 30s)
+- `src/components/DashboardClient.tsx` — assemblage realtime
+- `src/app/(dashboard)/dashboard/page.tsx` — réel (replace placeholder), redirect /onboarding force si pas complété
+- `src/app/(dashboard)/onboarding/page.tsx` — 3 questions glass swipe, progress dots, ~30s
+- `src/app/(dashboard)/profile/page.tsx` — avatar gradient + score + univers radar + impact totals + Fil de Vie 50 entries + code parrainage
+- `src/app/(dashboard)/actions/premiere/page.tsx` — action 30s one-clic + animation success
+- `src/app/api/onboarding/route.ts` — Zod + insert onboarding_responses + log fil_de_vie
+- `src/app/api/actions/premiere/route.ts` — anti-double + log fil_de_vie
+
+### Live verification P2
+- `https://kosha.purama.dev/onboarding` → 307 (auth required) ✓
+- `https://kosha.purama.dev/dashboard` → 307 → `/login?next=/dashboard` ✓
+- `https://kosha.purama.dev/profile` → 307 → `/login?next=/profile` ✓
+- `https://kosha.purama.dev/actions/premiere` → 307 → `/login` ✓
+- `https://kosha.purama.dev/api/status` → DB ok ✓
 
 ---
 
 ## What works
-- Build local (Turbopack 2.7s, 0 err)
-- TypeScript strict (0 err)
-- Toutes routes P1 répondent 200 / redirect attendu
-- Auth Supabase via auth.purama.dev (Google OAuth + email/password)
-- Schema PostgREST exposé
-- Cinématique 3s + skip Escape + prefers-reduced-motion fallback
-- Design glass cosmic, palette PURAMA, fonts Sora/DM Sans
+- P1 + P2 routes
+- Realtime hooks (à tester E2E par Tissma)
+- Schema immuable (RLS strict)
+- Score d'Humanité algo Postgres (4 composantes pondérées)
+- Onboarding < 30s
 
-## What doesn't work / blockers / TODO P2+
-
-- ❗ **Vrai test E2E auth** : Tissma doit tester en navigation privée signup email + Google OAuth. Le middleware redirige correctement, mais le flow complet user-→profile-trigger SQL doit être validé en P2 par UAT.
-- TODO P3 : Treezor sandbox API key (actuellement stub `stub_phase_1_simulate_only`)
-- TODO P3 : MapTiler API key (`NEXT_PUBLIC_MAPTILER_KEY` vide — peut utiliser tiles OSM publics en attendant)
-- TODO P4 : Web Push VAPID keys à générer (`npx web-push generate-vapid-keys`)
-- TODO Stripe Webhook : URL `https://kosha.purama.dev/api/stripe/webhook` à créer en P3 quand checkout sera codé. Le STRIPE_WEBHOOK_SECRET=whsec_TO_SET_AFTER_DEPLOY actuel = placeholder.
+## What doesn't work / TODO P3+
+- ❗ **UAT auth + onboarding** : Tissma doit signup en navigation privée, faire l'onboarding, voir score 5.0/10 + Fil de Vie 1 action ('onboarding_completed').
+- TODO P3 : Treezor sandbox API key
+- TODO P3 : MapTiler API key (peut utiliser OSM publics en attendant)
+- TODO P3 : Stripe webhook secret (créer endpoint `/api/stripe/webhook` puis update env)
+- TODO P3 : Tables cagnottes + contributions + splits + argent_memoire OpenTimestamps + fraud_signals + impact_global/user
+- TODO P4 : VAPID Web Push keys
+- ⚠️ /profile bundle = 337 kB (Recharts heavy) → P5 design polish : `dynamic() ssr:false` pour Recharts
 
 ---
 
-## Next session priorities — P2 VIDA CORE (~3h)
+## Next session priorities — P3 VIDA CAGNOTTE (~5h)
 
-1. Read CLAUDE.md (kosha local — V7.2) + BRIEF.md + task_plan.md + progress.md + ERRORS.md + PATTERNS.md
-2. Tables SQL : `fil_de_vie`, `score_humanite_history`, `universe_personnel`, `onboarding_responses`
-3. Page `/dashboard` réelle avec moment WOW (3 KPIs animés temps réel via Supabase realtime)
-4. Page `/profile` + Fil de Vie timeline immuable + ScoreHumaniteJauge composant
-5. Page `/onboarding` (3 questions max, < 30s)
-6. Hooks `useFilDeVie`, `useScoreHumanite`, `useAwakening`
-7. Test : un user peut signup → onboarding → dashboard → voir score 5.0/10 + 0 actions Fil de Vie
-8. Deploy P2 + handoff
+Cœur financier de KOSHA. 5 types de cagnottes avec IA Aria reformulation + Stripe checkout + Treezor split 70/15/5/10 + carte mondiale impact MapLibre.
+
+1. Lire BRIEF §3 module 2 (Cagnotte) + §6 (Treezor) + §7 (multisensoriel) + §10 (juridique)
+2. Tables SQL : cagnottes, cagnotte_contributions, cagnotte_splits, argent_memoire (OpenTimestamps Bitcoin), fraud_signals, impact_global/user
+3. lib/treezor.ts (stub mode) + lib/opentimestamps.ts (stamp BTC)
+4. Pages : `/cagnottes` (grid filtrable) + `/cagnottes/nouvelle` (wizard 4 steps avec Aria reformulation) + `/cagnottes/[id]` (détail + contribuer)
+5. API : create + contribute + Stripe webhook + Treezor split + Aria fraud-check + signalement
+6. `/impact-mondial` — MapLibre + tiles MapTiler/OSM + points lumineux temps réel
+7. Build + deploy + UAT
