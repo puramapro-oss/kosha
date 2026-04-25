@@ -1,24 +1,24 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 20:00
-**Phase completed** : P7 ✅ (VIDA IMPACT livré : dashboard personnel+collectif transparent + rapport annuel imprimable)
-**Next session** : P8 — VIDA RITUELS (méditations guidées + sessions live + journal de pratique)
+**Last session ended** : 2026-04-25 20:25
+**Phase completed** : P8 ✅ (VIDA RITUELS livré : rituel hebdo planétaire + 6 thèmes cycliques + Aria variations + live counter realtime)
+**Next session** : P9 — VIDA NEWSLETTER (Living Newsletter™ — 1 email = 1 action réelle, hebdo via Resend + n8n)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1-P7 livrés et live
+## ✅ P1-P8 livrés et live
 - **Web** : https://kosha.purama.dev → 200
 - **GitHub** : https://github.com/puramapro-oss/kosha
 - **Vercel** : puramapro-oss-projects/kosha
-- **Latest deploy** : `kosha-bt7dq22nl-puramapro-oss-projects.vercel.app`
-- **Build** : 41 routes, 0 erreur TS, warnings cosmétiques uniquement
-- **DB** : schema `kosha` avec 28 tables (pas de nouveau SQL P7 — tout aggrégé via lib/impact.ts depuis fil_de_vie + mission_completions + cagnotte_contributions + impact_global)
+- **Latest deploy** : `kosha-qjrhce1c3-puramapro-oss-projects.vercel.app`
+- **Build** : 45 routes, 0 erreur TS, warnings cosmétiques uniquement
+- **DB** : schema `kosha` avec 30 tables (P8 : +rituels_calendar +rituel_participations + fonction ensure_rituels_calendar + 8 rituels seedés)
 - **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (8 events)
-- **Modération IA Aria** : opérationnelle (chat + reformulate + fraud check + mission validation)
-- **8 missions seedées** : ecology / social / health / knowledge / creativity (50-1000 pts)
-- **Pages impact** : /impact (dashboard cumul perso + collectif) + /impact/[year]/rapport (page A4 imprimable → PDF via navigateur)
-- **Tests E2E** : **28/28 PASS** (P1-P7 complet, ~4m total cumulé)
+- **Modération IA Aria** : opérationnelle (chat + reformulate + fraud check + mission validation + variations rituels)
+- **8 missions seedées** + **8 rituels seedés** (W17→W24, cycle 6 thèmes : depollution/paix/amour/pardon/gratitude/abondance)
+- **Page /rituels** : hero glass + countdown live + intention textarea + bouton participer (+30 pts, fil_de_vie auto) + live counter realtime + calendrier 6 prochains
+- **Tests E2E** : **32/32 PASS** (P1-P8 complet)
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -26,8 +26,10 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P8** : VIDA RITUELS — méditations guidées + sessions live + journal de pratique
-6. **NEVER** recoder ce qui marche en P1-P7
+5. **Continuer P9** : VIDA NEWSLETTER (template Resend HTML 6 blocs + CRON hebdo lundi 9h Aria perso + tracking taux d'action + désabo 1 clic)
+6. **NEVER** recoder ce qui marche en P1-P8
+
+**TODO P11** : configurer le CRON n8n weekly pour POST `/api/cron/rituels-tick` lundi 00:05 UTC avec `Authorization: Bearer ${CRON_SECRET}` (env CRON_SECRET pas encore set en prod — à générer + vercel env add).
 
 ---
 
