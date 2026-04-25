@@ -6,6 +6,7 @@ export type FilDeVieActionType =
   | 'profile_created'
   | 'cagnotte_created'
   | 'cagnotte_contributed'
+  | 'cagnotte_completed'
   | 'mission_completed'
   | 'rituel_participated'
   | 'parrain_first_payment'
@@ -15,6 +16,13 @@ export type FilDeVieActionType =
   | 'newsletter_action'
   | 'aria_first_chat'
   | 'wallet_first_withdrawal'
+  | 'first_post'
+  | 'reaction_given'
+  | 'reaction_received'
+  | 'referral_signup'
+  | 'referral_subscribed'
+  | 'streak_7'
+  | 'streak_30'
 
 export interface FilDeVieImpact {
   kg_dechets?: number
@@ -131,4 +139,12 @@ export const ACTION_VISUALS: Record<
   newsletter_action: { emoji: '✉', color: '#10B981', humanLabel: 'Action via newsletter' },
   aria_first_chat: { emoji: '◊', color: '#7C3AED', humanLabel: 'Premier échange Aria' },
   wallet_first_withdrawal: { emoji: '€', color: '#F59E0B', humanLabel: 'Premier retrait' },
+  cagnotte_completed: { emoji: '⬢', color: '#10B981', humanLabel: 'Cagnotte atteinte' },
+  first_post: { emoji: '✎', color: '#06B6D4', humanLabel: 'Première parole' },
+  reaction_given: { emoji: '⟡', color: '#EC4899', humanLabel: 'Tu as soutenu' },
+  reaction_received: { emoji: '⟡', color: '#EC4899', humanLabel: 'Tu as été soutenu' },
+  referral_signup: { emoji: '✶', color: '#7C3AED', humanLabel: 'Filleul inscrit' },
+  referral_subscribed: { emoji: '✶', color: '#10B981', humanLabel: 'Filleul abonné' },
+  streak_7: { emoji: '⊛', color: '#F59E0B', humanLabel: '7 jours d\'affilée' },
+  streak_30: { emoji: '⊛', color: '#F59E0B', humanLabel: '30 jours d\'affilée' },
 }
