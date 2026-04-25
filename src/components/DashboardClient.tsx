@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart, Sparkles, Compass } from 'lucide-react'
+import { Heart, Sparkles, Compass, MessageSquare, Users, Moon } from 'lucide-react'
 import ScoreHumaniteJauge from './ScoreHumaniteJauge'
 import FilDeVieTimeline from './FilDeVieTimeline'
 import MomentWow from './MomentWow'
@@ -97,16 +97,21 @@ export default function DashboardClient({
         </section>
       </div>
 
-      {/* Modules à venir */}
+      {/* Modules vivants */}
       <section className="glass rounded-2xl p-6 space-y-4">
-        <h2 className="text-lg font-display font-semibold text-white/85">L&apos;univers se construit</h2>
+        <h2 className="text-lg font-display font-semibold text-white/85">L&apos;univers vivant</h2>
         <p className="text-white/55 text-sm leading-relaxed">
-          Chaque semaine, un nouveau module arrive. Tu ne perds rien — ton Fil de Vie t&apos;accompagne.
+          Chaque module arrive et reste — ton Fil de Vie t&apos;accompagne dans tous.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <ComingSoon icon={<Heart className="w-4 h-4" />} title="Cagnottes" desc="5 types, IA reformulation, redistribution Treezor SEPA" />
-          <ComingSoon icon={<Sparkles className="w-4 h-4" />} title="Aria" desc="L'IA qui agit, pas qui répond" />
-          <ComingSoon icon={<Compass className="w-4 h-4" />} title="Missions" desc="8 sources de gains réels" />
+          <LiveLink href="/cagnottes" icon={<Heart className="w-4 h-4" />} title="Cagnottes" desc="5 types, IA Aria, blockchain Bitcoin" />
+          <LiveLink href="/feed" icon={<MessageSquare className="w-4 h-4" />} title="Le fil paisible" desc="3 vibrations, 0 toxicité" />
+          <LiveLink href="/cercles" icon={<Users className="w-4 h-4" />} title="Cercles de Vie" desc="Max 12 voyageurs, 1 intention" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <LiveLink href="/impact-mondial" icon={<Compass className="w-4 h-4" />} title="Impact mondial" desc="La constellation des intentions" />
+          <LiveLink href="/silence" icon={<Moon className="w-4 h-4" />} title="Mode Silence" desc="Couper Aria et le monde" />
+          <ComingSoon icon={<Sparkles className="w-4 h-4" />} title="Aria Chat" desc="L'IA qui agit, pas qui répond (P5)" />
         </div>
       </section>
 
@@ -165,6 +170,34 @@ function ComingSoon({
       </div>
       <p className="text-xs text-white/55 leading-relaxed">{desc}</p>
     </div>
+  )
+}
+
+function LiveLink({
+  href,
+  icon,
+  title,
+  desc,
+}: {
+  href: string
+  icon: React.ReactNode
+  title: string
+  desc: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-xl bg-white/[0.04] border border-white/10 p-4 hover:bg-white/[0.08] hover:border-white/20 transition-colors block focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+    >
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/30 to-cyan-500/20 text-white flex items-center justify-center">
+          {icon}
+        </span>
+        <span className="text-sm font-semibold text-white">{title}</span>
+        <span className="ml-auto text-white/40 group-hover:text-white/85 text-xs transition-colors">→</span>
+      </div>
+      <p className="text-xs text-white/55 leading-relaxed">{desc}</p>
+    </Link>
   )
 }
 
