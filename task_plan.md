@@ -131,13 +131,27 @@
 
 ---
 
-## P8 — VIDA RITUELS (~2h) — PENDING
+## P8 — VIDA RITUELS (~2h) — ✅ COMPLETED 2026-04-25
 
-- [ ] P8.1 Tables (rituels_calendar, rituel_participations, notifications_push)
-- [ ] P8.2 Page /rituels + countdown + live bar
-- [ ] P8.3 CRON weekly trigger (lundi 00:00 UTC)
-- [ ] P8.4 CRON push notif (1h avant + au moment, respecte Mode Silence)
-- [ ] P8.5 Aria variations cycliques
+- [x] P8.1 SQL : 2 tables (rituels_calendar UNIQUE week_iso + rituel_participations UNIQUE rituel+user) + trigger after_rituel_participation_insert (Points +30 + fil_de_vie + counter atomique) + RLS strict + ALTER PUBLICATION realtime + fonction ensure_rituels_calendar(N) idempotente + 8 rituels seedés
+- [x] P8.2 Lib rituels.ts : getCurrentRituel, getUpcomingRituels, hasParticipated, generateAriaVariation (Haiku), THEME_VISUAL Record, formatCountdownFR, rituelState
+- [x] P8.3 APIs : GET /api/rituels/current (current+state+upcoming+user_participated) + POST /api/rituels/[id]/participate (Zod intention 280c, anti-double 409, +30 pts via trigger) + POST /api/cron/rituels-tick (Bearer secret, ensure 8 weeks + 2 variations Aria)
+- [x] P8.4 Page /rituels : hero glass gradient/thème + countdown OU live counter + textarea intention + bouton participer + live bar realtime via Supabase channel + calendrier 6 prochains thèmes + historique participations
+- [x] P8.5 Variations Aria cycliques (générées par CRON via askAria Haiku, stockées en variation_text)
+- [x] Tests E2E uat-rituels.spec.ts : 4/4 PASS (hero render, participate→fil_de_vie+pts, anti-double 409, JSON structure)
+- [x] Bug fix critique : ALTER fil_de_vie CHECK avait été listé incomplet (sous-ensemble) → cassait silencieusement onboarding INSERT → restore UNION COMPLÈTE 21 valeurs (P3+P4+P6+P8). Logged in ERRORS.md.
+
+**GATE P8 ✅** :
+- Build : 35 routes (+4 vs P7), 0 erreur TS
+- Live : /rituels → 307 (auth), /api/rituels/current → 401 sans auth, /api/rituels/[id]/participate → 401 sans auth
+- 4/4 UAT PASS sur prod live + régression P1-P7 confirmée OK
+- 1 rituel/semaine cycle 6 thèmes (depollution/paix/amour/pardon/gratitude/abondance) — semaine W17 = "Pardon universel"
+- Trigger SQL crédite +30 Points + insère fil_de_vie + bump participants_count atomiquement
+- Anti-double : UNIQUE (rituel_id, user_id) + check explicite côté API → 409 already_participated
+- Realtime : Supabase channel kosha.rituel_participations filtered → live counter sans refresh
+- CRON /api/cron/rituels-tick prêt pour n8n (lundi 00:05 UTC, ensure 8 weeks + Aria variations)
+
+**Note P8 push notif** : reportée P11 (web push VAPID + Expo notifications iOS/Android — voir handoff TODO).
 
 ---
 

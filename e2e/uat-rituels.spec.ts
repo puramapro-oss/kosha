@@ -105,7 +105,7 @@ test.describe('UAT P8 — VIDA RITUELS', () => {
       .from('fil_de_vie')
       .select('action_type, action_label, impact_data')
       .eq('user_id', user1.id)
-      .eq('action_type', 'rituel_joined')
+      .eq('action_type', 'rituel_participated')
       .maybeSingle()
     expect(fdv).toBeTruthy()
     expect(fdv?.action_label).toContain(data.current.theme_label)
