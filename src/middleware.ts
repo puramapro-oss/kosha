@@ -16,6 +16,7 @@ function isPublicPath(pathname: string): boolean {
   if (pathname.startsWith('/i/')) return true              // lien influenceur
   if (pathname.startsWith('/share/')) return true          // partage public
   if (pathname.startsWith('/cagnottes/')) return true      // cagnottes publiques (lecture)
+  if (pathname.startsWith('/u/')) return true              // page désabo newsletter (token)
   if (pathname.startsWith('/api/')) return true
   if (pathname.startsWith('/_next/')) return true
   if (pathname.startsWith('/auth/')) return true
