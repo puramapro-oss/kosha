@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Heart, Sparkles, Compass, MessageSquare, Users, Moon, Leaf, BarChart3, Flame, Mail } from 'lucide-react'
+import { Heart, Sparkles, Compass, MessageSquare, Users, Moon, Leaf, BarChart3, Flame, Mail, ShieldCheck } from 'lucide-react'
 import ScoreHumaniteJauge from './ScoreHumaniteJauge'
 import FilDeVieTimeline from './FilDeVieTimeline'
 import MomentWow from './MomentWow'
@@ -24,6 +24,7 @@ interface Props {
   initialFilDeVieCount: number
   estimatedMonthlyEarnings: number
   liveCommunityImpact: number
+  isSuperAdmin?: boolean
 }
 
 export default function DashboardClient({
@@ -35,6 +36,7 @@ export default function DashboardClient({
   initialFilDeVieCount,
   estimatedMonthlyEarnings,
   liveCommunityImpact,
+  isSuperAdmin = false,
 }: Props) {
   // Realtime hooks (initial data côté serveur, push live ensuite)
   const { entries: liveEntries } = useFilDeVie(userId, 8)
@@ -119,6 +121,23 @@ export default function DashboardClient({
           <LiveLink href="/settings/newsletter" icon={<Mail className="w-4 h-4" />} title="Newsletter" desc="1 email/semaine, 6 blocs, 1 action concrète" />
           <LiveLink href="/silence" icon={<Moon className="w-4 h-4" />} title="Mode Silence" desc="Couper Aria et le monde" />
         </div>
+        {isSuperAdmin && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Link
+              href="/admin"
+              className="group rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-400/5 border border-amber-400/30 p-4 hover:bg-amber-500/15 transition-colors block focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:col-span-3"
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="w-7 h-7 rounded-lg bg-amber-500/30 text-amber-200 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4" />
+                </span>
+                <span className="text-sm font-semibold text-amber-100">Espace Pilote</span>
+                <span className="ml-auto text-amber-200/70 group-hover:text-amber-100 text-xs">→</span>
+              </div>
+              <p className="text-xs text-amber-100/60 leading-relaxed">Back-office Tissma — KPIs, users, configuration dynamique, audit logs</p>
+            </Link>
+          </div>
+        )}
       </section>
 
       <footer className="pt-6 border-t border-white/5 flex items-center justify-between">

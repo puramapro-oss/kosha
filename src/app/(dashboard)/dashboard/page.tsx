@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { getRecentFilDeVie, type FilDeVieEntry } from '@/lib/fil-de-vie'
 import { getCurrentScore } from '@/lib/score'
+import { isSuperAdmin as isSuperAdminEmail } from '@/lib/constants'
 import DashboardClient from '@/components/DashboardClient'
 
 export const dynamic = 'force-dynamic'
@@ -60,6 +61,7 @@ export default async function DashboardPage() {
           initialFilDeVieCount={profile?.fil_de_vie_count ?? 0}
           estimatedMonthlyEarnings={estimatedMonthlyEarnings}
           liveCommunityImpact={communityImpact}
+          isSuperAdmin={isSuperAdminEmail(user.email)}
         />
       </div>
     </main>
