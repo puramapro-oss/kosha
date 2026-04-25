@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────
+ * KOSHA — Palette PURAMA cosmique (CLAUDE.md V7.2 §10 + BRIEF §9)
+ * Dark-by-default, glass, cosmic, multisensoriel igloo.inc-grade
+ * ──────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* Couleurs PURAMA */
+  --bg: #0A0A0F;
+  --bg-elev-1: #11111A;
+  --bg-elev-2: #18182A;
+  --fg: #F8FAFC;
+  --fg-muted: rgba(248, 250, 252, 0.65);
+  --fg-subtle: rgba(248, 250, 252, 0.45);
+  --fg-faint: rgba(248, 250, 252, 0.25);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Couleurs KOSHA spécifiques */
+  --violet: #7C3AED;
+  --violet-soft: rgba(124, 58, 237, 0.12);
+  --cyan: #06B6D4;
+  --cyan-soft: rgba(6, 182, 212, 0.10);
+  --bleu: #3B82F6;
+  --emerald: #10B981;
+  --rose: #EC4899;
+  --amber: #F59E0B;
+  --gold: #FFD700; /* super admin only */
+
+  /* Système d'espacement (4px) */
+  color-scheme: dark;
+}
+
+/* Theme tokens for Tailwind v4 */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-violet-pure: var(--violet);
+  --color-cyan-pure: var(--cyan);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+/* Light mode (toggle via [data-theme="light"]) */
+[data-theme="light"] {
+  --bg: #FAFAFA;
+  --bg-elev-1: #FFFFFF;
+  --bg-elev-2: #F4F4F5;
+  --fg: #0F172A;
+  --fg-muted: rgba(15, 23, 42, 0.70);
+  --fg-subtle: rgba(15, 23, 42, 0.45);
+  --fg-faint: rgba(15, 23, 42, 0.25);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  color-scheme: light;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * Base
+ * ──────────────────────────────────────────────────────────────────
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body), -apple-system, system-ui, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overflow-x: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display), 'Sora', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.35);
+  color: #fff;
+}
+
+/* Scrollbar custom */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
+}
+
+/* Focus visible — accessibility (BRIEF §7 WCAG AAA) */
+:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * Composants utilitaires KOSHA
+ * ──────────────────────────────────────────────────────────────────
+ */
+
+/* Glass card — effet verre dépoli (V7.2 §10) */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 4px 30px rgba(0, 0, 0, 0.25);
+}
+
+.glass:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--border-strong);
+}
+
+/* Light mode glass */
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Gradient KOSHA — violet → cyan (signature) */
+.gradient-text-kosha {
+  background: linear-gradient(135deg, #7C3AED 0%, #3B82F6 50%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-text-animated {
+  background: linear-gradient(270deg, #7C3AED, #3B82F6, #06B6D4, #7C3AED);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: gradientShift 8s ease-in-out infinite;
+}
+
+.gradient-bg-kosha {
+  background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
+}
+
+/* Glow effects */
+.glow-violet {
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.35), 0 0 60px rgba(124, 58, 237, 0.15);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.30), 0 0 60px rgba(6, 182, 212, 0.12);
+}
+
+/* Aberration chromatique — appliquée sur transitions critiques (BRIEF §9) */
+.aberration {
+  text-shadow:
+    -1px 0 rgba(255, 0, 100, 0.45),
+    1px 0 rgba(0, 200, 255, 0.45);
+}
+
+/* Bottom nav safe area */
+.bottom-nav {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * Animations
+ * ──────────────────────────────────────────────────────────────────
+ */
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes aurora {
+  0%   { background-position: 0% 50%, 100% 50%; }
+  50%  { background-position: 50% 0%, 50% 100%; }
+  100% { background-position: 100% 50%, 0% 50%; }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Cinématique d'ouverture — scramble effect (BRIEF §9) */
+@keyframes scramble-fade-in {
+  0%   { opacity: 0; filter: blur(12px) hue-rotate(120deg); transform: translateY(8px) scale(0.96); }
+  60%  { opacity: 1; filter: blur(2px) hue-rotate(0deg); transform: translateY(0) scale(1.01); }
+  100% { opacity: 1; filter: blur(0) hue-rotate(0deg); transform: translateY(0) scale(1); }
+}
+
+.animate-scramble-in {
+  animation: scramble-fade-in 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Respect prefers-reduced-motion (BRIEF §7 + WCAG) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .gradient-text-animated {
+    animation: none;
+  }
+  .aberration {
+    text-shadow: none;
+  }
+}
+
+/* RTL (ar) */
+[dir="rtl"] .gradient-text-kosha {
+  background: linear-gradient(225deg, #7C3AED 0%, #3B82F6 50%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
