@@ -3,6 +3,16 @@ import type { Page } from '@playwright/test'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
+// Charge .env.local AVANT de lire les vars (Playwright ne le fait pas tout seul).
+;(function loadEnvLocal() {
+  const file = path.join(__dirname, '..', '.env.local')
+  if (!fs.existsSync(file)) return
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/)
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '')
+  }
+})()
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://auth.purama.dev'
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!
 

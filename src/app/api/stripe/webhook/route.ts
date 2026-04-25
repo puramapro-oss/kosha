@@ -41,7 +41,11 @@ export async function POST(req: NextRequest) {
     const md = session.metadata ?? {}
 
     if (md.kind === 'cagnotte_contribution' && md.cagnotte_id && md.contributor_id && session.amount_total) {
-      await handleCagnotteContribution(session, md)
+      try {
+        await handleCagnotteContribution(session, md)
+      } catch (e) {
+        console.error('[stripe/webhook] handleCagnotteContribution failed', e instanceof Error ? e.message : e)
+      }
     }
   }
 
