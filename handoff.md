@@ -1,25 +1,41 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 20:36
-**Phase completed** : P9 ✅ (VIDA NEWSLETTER livré : Living Newsletter™ 6 blocs Aria + désabo 1 clic RFC 8058)
-**Next session** : P10 — VIDA ESPACE PILOTE (back-office admin Tissma : KPI globaux + users + cagnottes + payouts influenceurs + modif prix/textes/features temps réel)
+**Last session ended** : 2026-04-25 21:00
+**Phase completed** : **P11.web ✅** (KOSHA WEB COMPLET — toutes les phases P1→P10 livrées + P11 web QA + Lighthouse > 90 + 3 flows critiques regression guardian)
+**Next session** : P11.mobile — Expo 52 init `kosha-mobile` (bundle `dev.purama.kosha`) + EAS build iOS+Android (nécessite Apple Developer + Google Play credentials)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1-P9 livrés et live
+## 🚀 KOSHA WEB COMPLET — v1.0-web
+
 - **Web** : https://kosha.purama.dev → 200
 - **GitHub** : https://github.com/puramapro-oss/kosha
 - **Vercel** : puramapro-oss-projects/kosha
-- **Latest deploy** : `kosha-hpfmfo2my-puramapro-oss-projects.vercel.app`
-- **Build** : 51 routes, 0 erreur TS, warnings cosmétiques uniquement
-- **DB** : schema `kosha` avec 32 tables (P9 : +newsletter_subscribers +newsletter_emails + trigger after_profile_insert_newsletter + backfill auto)
+- **Latest deploy** : `kosha-gxv1d7dvs-puramapro-oss-projects.vercel.app`
+- **Build** : 58 routes, 0 erreur TS strict
+- **DB** : schema `kosha` avec 35+ tables, 14+ triggers SECURITY DEFINER
 - **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (8 events)
-- **Aria** : chat + reformulate + fraud check + mission validation + rituel variations + newsletter 6-blocs perso (Sonnet)
-- **Page /settings/newsletter** : toggle + 8 derniers numéros + status envoyé/ouvert/action
-- **Page /u/[token]** publique : 3 états (invalide / encore abonné / désabonné) + réabo en 1 clic
-- **CRON-ready** : POST /api/cron/newsletter-weekly (Bearer secret + dry_run + limit + détails par user)
-- **Tests E2E** : **36/36 PASS** (P1-P9 complet, ~5min cumulé)
+- **Tests E2E** : **43/43 PASS** (en isolation), **40/43 + 1 flake Aria streaming + 2 unrun** en parallèle full
+- **Lighthouse 3 pages** : tous > 90 (Perf 94-97, A11y 95-96, BP 96-100, SEO 90)
+- **Web vitals homepage** : LCP 2.4s, FCP 1.1s, CLS 0.002
+- **Rapport final** : `e2e/RAPPORT_UAT.md`
+
+## ✅ Phases livrées (P1-P11.web)
+
+| P | Domaine | Tests | Live |
+|---|---------|------:|------|
+| P1 | Setup + Auth (Supabase + Google OAuth + middleware SSR) | inclus uat.spec | ✅ |
+| P2 | VIDA CORE (Fil de Vie immuable + Score Humanité radial + onboarding 3Q) | inclus uat.spec | ✅ |
+| P3 | VIDA CAGNOTTE (5 types + wizard 4 steps + Aria reformule + Stripe webhook + OpenTimestamps Bitcoin) | 3 + uat.spec | ✅ |
+| P4 | VIDA SOCIAL (modération Aria + cercles max 12 + 3 réactions + Mode Silence chevauchement minuit) | inclus uat.spec | ✅ |
+| P5 | VIDA IA Aria (chat SSE streaming + auto-title + mémoire + sacred line) | 4 | ✅ |
+| P6 | VIDA MISSIONS (validation Aria + +50pts auto + 8 missions seedées) | 5 | ✅ |
+| P7 | VIDA IMPACT (dashboard perso + collectif + rapport A4 imprimable PDF) | 5 | ✅ |
+| P8 | VIDA RITUELS (1/sem + 6 thèmes cycliques + live counter realtime) | 4 | ✅ |
+| P9 | VIDA NEWSLETTER (6 blocs Aria + RFC 8058 One-Click) | 4 | ✅ |
+| P10 | VIDA ESPACE PILOTE (back-office triple-check + KPIs + config dynamique + audit logs) | 4 | ✅ |
+| P11.web | Lighthouse + 3 flows critiques regression guardian | 3 | ✅ |
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -27,13 +43,14 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P10** : VIDA ESPACE PILOTE — back-office admin Tissma seulement (triple vérif JWT + email + role super_admin) avec KPIs (users, MRR, cagnottes, impact, dons), modif dynamique prix/textes/features, validation payouts influenceurs, accès séparé influenceurs (vue ses propres ventes/commissions/codes)
-6. **NEVER** recoder ce qui marche en P1-P9
+5. **Continuer P11.mobile** : Expo 52 init `kosha-mobile` + auth SecureStore (Platform.OS adapter) + icônes Pollinations + EAS build iOS+Android
+6. **NEVER** recoder ce qui marche en P1-P11.web
 
-**TODO P11** :
+**TODO ops (peut être fait en parallèle)** :
 - Configurer CRON n8n weekly pour POST `/api/cron/newsletter-weekly` lundi 9h Europe/Paris + `/api/cron/rituels-tick` lundi 00:05 UTC, tous deux avec `Authorization: Bearer ${CRON_SECRET}`
-- Générer `CRON_SECRET` (`openssl rand -hex 32`) + `vercel env add` (prod + preview)
+- Générer `CRON_SECRET` (`openssl rand -hex 32`) + `vercel env add CRON_SECRET production`
 - Vérifier domaine email Resend `noreply@purama.dev` (DKIM/SPF/DMARC dans DNS via Hostinger)
+- Optionnel : tag git `v1.0-web` pour marquer la version stable
 
 ---
 
