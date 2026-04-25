@@ -18,7 +18,11 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/profile')
 
-  const { data: profile } = await supabase
+  // Fetch via service client (l'identité est déjà vérifiée par le JWT cookie au-dessus).
+  // Le client cookied + RLS profiles_self_select retournait null par intermittence
+  // selon le rendering Vercel — service client + filter explicite par user.id = stable.
+  const service = createServiceClient()
+  const { data: profile } = await service
     .from('profiles')
     .select('full_name, avatar_url, score_humanite, fil_de_vie_count, plan, awakening_level, referral_code, created_at')
     .eq('id', user.id)
@@ -29,7 +33,6 @@ export default async function ProfilePage() {
   const fullName = profile.full_name || user.email?.split('@')[0] || 'Voyageur'
 
   // Parallel fetch
-  const service = createServiceClient()
   const [{ score, components }, entries, impactTotals, universData] = await Promise.all([
     getCurrentScore(user.id),
     getRecentFilDeVie(user.id, 50),
