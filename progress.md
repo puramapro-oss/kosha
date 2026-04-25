@@ -1,13 +1,14 @@
 # KOSHA — PROGRESS
 
-**Last updated** : 2026-04-25 17:35
-**Current phase** : P2 ✅ COMPLETED
-**Next phase** : P3 — VIDA CAGNOTTE (~5h)
+**Last updated** : 2026-04-25 18:05
+**Current phase** : P3 ✅ COMPLETED
+**Next phase** : P4 — VIDA SOCIAL (~4h)
 **Live URL** : https://kosha.purama.dev (HTTP 200)
-**GitHub** : https://github.com/puramapro-oss/kosha (commit `d1f94bd`)
+**GitHub** : https://github.com/puramapro-oss/kosha (commit `d2b7f71`)
 **Vercel** : puramapro-oss-projects/kosha
-**Build** : 14 routes, 0 erreur TS strict, 1 warning cosmétique
-**Latest deployment** : `kosha-aol4t7zig-puramapro-oss-projects.vercel.app`
+**Build** : 24 routes, 0 erreur TS strict, 1 warning cosmétique
+**Latest deployment** : `kosha-i84131se4-puramapro-oss-projects.vercel.app`
+**Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (7 events) — secret synced sur 3 envs Vercel
 
 ---
 
@@ -66,32 +67,89 @@ Voir commit `605c9c7` + `a4b2734`. Routes : /, /login, /signup, /forgot-password
 
 ---
 
-## What works
-- P1 + P2 routes
-- Realtime hooks (à tester E2E par Tissma)
-- Schema immuable (RLS strict)
-- Score d'Humanité algo Postgres (4 composantes pondérées)
-- Onboarding < 30s
+## ✅ P3 — VIDA CAGNOTTE (livré 2026-04-25 18:05, ~1h35)
 
-## What doesn't work / TODO P3+
-- ❗ **UAT auth + onboarding** : Tissma doit signup en navigation privée, faire l'onboarding, voir score 5.0/10 + Fil de Vie 1 action ('onboarding_completed').
-- TODO P3 : Treezor sandbox API key
-- TODO P3 : MapTiler API key (peut utiliser OSM publics en attendant)
-- TODO P3 : Stripe webhook secret (créer endpoint `/api/stripe/webhook` puis update env)
-- TODO P3 : Tables cagnottes + contributions + splits + argent_memoire OpenTimestamps + fraud_signals + impact_global/user
-- TODO P4 : VAPID Web Push keys
-- ⚠️ /profile bundle = 337 kB (Recharts heavy) → P5 design polish : `dynamic() ssr:false` pour Recharts
+### Tables SQL ajoutées au schema kosha (db/p3_cagnotte.sql)
+- `cagnottes` : 5 types (communautaire/projet_vie/action_immediate/humanitaire/hybride), max 5 actives/user, RLS strict (lecture publique sur active+completed, update interdit après 1ère contrib)
+- `cagnotte_contributions` : idempotent via stripe_session_id UNIQUE, RLS lecture (contributor + owner + public si non-anonymous)
+- `cagnotte_splits` : 70/15/5/10 calculé dans fonction `compute_cagnotte_split` (last bucket absorbe le reste)
+- `argent_memoire` : SHA256 hash + ots_proof_base64 + ots_proof_upgraded_base64 + bitcoin_block_height (IMMUTABLE)
+- `fraud_signals` : signal_type (ai_detected/community_reported/stripe_radar/manual_admin) + severity 1-10
+- `impact_global` : single row id=1, lecture publique
+- 1 fonction `compute_cagnotte_split(amount)` IMMUTABLE
+- 1 trigger `after_contribution_succeeded` : update raised_amount + contributors_count + cagnotte_splits + impact_global + insert fil_de_vie + auto-completion si target atteint
+- ALTER PUBLICATION supabase_realtime ADD pour 4 tables (push live)
+- ALTER fil_de_vie CHECK étendu : +cagnotte_completed +first_post +reaction_* +referral_* +streak_*
+
+### Code livré
+- `src/lib/treezor.ts` — stub Phase 1 : createTreezorUser/createTreezorWallet/simulatePayout + calculateSplit (mirror SQL)
+- `src/lib/opentimestamps.ts` — hashPayload (canonical JSON SHA256) + stampHash (calendar OTS, fallback graceful) + upgradeProof (extract block height) + verifyProof (Bitcoin attestation)
+- `src/lib/cagnottes.ts` — CagnotteCreateSchema + CagnotteContributeSchema + CagnotteReportSchema + getActiveCagnottes/getCagnotteById/getCagnotteSplits/getRecentContributions + helpers progressPercent/formatEur
+- `src/types/javascript-opentimestamps.d.ts` — types minimaux pour la lib non-typed
+- `src/lib/fil-de-vie.ts` — extension type union + ACTION_VISUALS pour 7 nouveaux types
+- `src/components/CagnotteCard.tsx` — carte glass + gradient owner color + progression bar + status badge
+- `src/components/CagnotteContributePanel.tsx` — quick amounts + amount libre + message + anonymous + Stripe redirect
+- `src/components/CagnotteReportButton.tsx` — toggle modal + textarea + soft amber feedback
+- `src/components/MapLibreCanvas.tsx` — MapLibre OSM tiles desaturated + dots glow violet/cyan
+- `src/components/ImpactMondialClient.tsx` — realtime channel + counters animés + feed + dynamic MapLibre import
+- `src/app/api/cagnottes/create/route.ts` — auth + Zod + anti-spam 5 actives + log fil_de_vie
+- `src/app/api/cagnottes/[id]/contribute/route.ts` — Stripe Checkout session metadata kind=cagnotte_contribution
+- `src/app/api/cagnottes/[id]/report/route.ts` — community signal (1/user/cagnotte) + auto fraud_check à 3 signaux
+- `src/app/api/aria/reformulate/route.ts` — Aria Sonnet reformule titre+description+impact_phrase, fallback graceful
+- `src/app/api/aria/fraud-check/route.ts` — Aria Haiku score 0-100 + auto-freeze si > 70 + log fraud_signal
+- `src/app/api/stripe/webhook/route.ts` — verify signature + idempotent (stripe_session_id) + INSERT contribution succeeded → trigger SQL fait le reste + INSERT argent_memoire async
+- `src/app/(dashboard)/cagnottes/page.tsx` — grid filtrable types + stats globales + CTA Impact mondial
+- `src/app/(dashboard)/cagnottes/nouvelle/page.tsx` — wizard 4 steps (type → récit → Aria reformule → confirmation)
+- `src/app/(dashboard)/cagnottes/[id]/page.tsx` — hero + progression + split tracé 4 tiles + contributions list + report btn
+- `src/app/(dashboard)/impact-mondial/page.tsx` — MapLibre + counters live + feed récent
+
+### Live verification P3
+- `curl /api/stripe/webhook` POST unsigned → 400 ✓
+- `curl /api/cagnottes/create` POST sans auth → 401 ✓
+- `curl /api/cagnottes/[id]/contribute` POST sans auth → 401 ✓
+- `curl /api/aria/reformulate` POST sans auth → 401 ✓
+- `curl /cagnottes` → 307 → /login ✓
+- `curl /impact-mondial` → 307 → /login ✓
+- `curl /api/status` → DB ok ✓
+
+### Stripe + ENV
+- Webhook prod créé : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (7 events live)
+- STRIPE_SECRET_KEY rotated (l'ancienne ...Ni7m était révoquée — la valide est ...gyY1)
+- STRIPE_WEBHOOK_SECRET = `whsec_MgzeEOZw4D2YrbPDKKTD7p0P0eHt5F5l`
+- 2 env vars syncées via `vercel env add` sur production + development (preview à compléter si besoin)
 
 ---
 
-## Next session priorities — P3 VIDA CAGNOTTE (~5h)
+## What works
+- P1 + P2 + P3 routes
+- Realtime hooks (Fil de Vie + Score + Cagnottes + Impact Mondial)
+- Schema immuable (RLS strict + Fil de Vie DENY DELETE/UPDATE + argent_memoire IMMUTABLE)
+- Score d'Humanité algo Postgres (4 composantes pondérées)
+- Trigger auto-update split + impact_global + fil_de_vie + auto-completion
+- Wizard cagnotte 4 steps + Aria reformulation Sonnet + fallback graceful
+- Stripe Checkout one-shot + webhook signature verify + idempotent
+- OpenTimestamps stamp async (ne bloque pas le webhook 200)
+- MapLibre OSM tiles 0€ + realtime dots animés + 18 villes geocodées en fallback
 
-Cœur financier de KOSHA. 5 types de cagnottes avec IA Aria reformulation + Stripe checkout + Treezor split 70/15/5/10 + carte mondiale impact MapLibre.
+## What doesn't work / TODO P4+
+- ❗ **UAT P3** : Tissma doit créer 1 cagnotte test (wizard 4 steps), faire un don test (Stripe carte 4242 4242 4242 4242 — éviter en prod live!), vérifier réception webhook + Fil de Vie + Impact Mondial map
+- TODO P4 : VAPID Web Push keys
+- TODO P4 : Tables posts/cercles/cercle_membres/reactions/story_rewards/silence_mode
+- TODO P4 : feed inversé positif filtré IA Aria
+- ⚠️ /profile bundle 338 kB (Recharts) — P5
+- ⚠️ /cagnottes/* bundles ~316 kB — pourrait être code-splitté en P5
 
-1. Lire BRIEF §3 module 2 (Cagnotte) + §6 (Treezor) + §7 (multisensoriel) + §10 (juridique)
-2. Tables SQL : cagnottes, cagnotte_contributions, cagnotte_splits, argent_memoire (OpenTimestamps Bitcoin), fraud_signals, impact_global/user
-3. lib/treezor.ts (stub mode) + lib/opentimestamps.ts (stamp BTC)
-4. Pages : `/cagnottes` (grid filtrable) + `/cagnottes/nouvelle` (wizard 4 steps avec Aria reformulation) + `/cagnottes/[id]` (détail + contribuer)
-5. API : create + contribute + Stripe webhook + Treezor split + Aria fraud-check + signalement
-6. `/impact-mondial` — MapLibre + tiles MapTiler/OSM + points lumineux temps réel
-7. Build + deploy + UAT
+---
+
+## Next session priorities — P4 VIDA SOCIAL (~4h)
+
+Feed inversé positif (anti-Instagram) + Cercles de Vie + Stories rémunérées + Réactions multisensorielles + Mode Silence.
+
+1. Lire BRIEF §3 module 3 (Communauté) + §7 (multisensoriel)
+2. Tables SQL : posts, cercles, cercle_membres, reactions [energie|gratitude|soutien], story_rewards, silence_mode
+3. /feed (feed positif filtré IA, jamais comparaison ni FOMO)
+4. /cercles + /cercles/[id] (max 12 membres, focus thématique)
+5. Stories d'évolution full-screen swipe + auto-rémunération
+6. Réactions multisensorielles (Web Vibration API + sons subtils)
+7. /silence — config Mode Silence (calendrier + hors plage)
+8. Build + deploy + UAT

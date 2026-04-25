@@ -50,14 +50,26 @@
 
 ---
 
-## P3 — VIDA CAGNOTTE (~5h) — PENDING
+## P3 — VIDA CAGNOTTE (~5h) — ✅ COMPLETED 2026-04-25
 
-- [ ] P3.1 Tables (cagnottes 5 types + contributions + splits 70/15/5/10 + argent_memoire OpenTimestamps + fraud_signals + impact_global/user)
-- [ ] P3.2 Pages /cagnottes (grid) + /cagnottes/nouvelle (wizard 4 steps) + /cagnottes/[id]
-- [ ] P3.3 API create + contribute + Stripe webhook + Treezor split (stub)
-- [ ] P3.4 Aria reformulation cagnotte (Sonnet)
-- [ ] P3.5 Anti-fraude IA + signalement communautaire
-- [ ] P3.6 /impact-mondial avec MapLibre + tiles MapTiler
+- [x] P3.1 SQL : 6 tables (cagnottes/contributions/splits/argent_memoire/fraud_signals/impact_global) + trigger after_contribution_succeeded + RLS strict + ALTER PUBLICATION realtime
+- [x] P3.2 Lib : treezor.ts (stub Phase 1) + opentimestamps.ts (hashPayload + stampHash + verifyProof) + cagnottes.ts (Zod + queries + helpers) + types/javascript-opentimestamps.d.ts
+- [x] P3.3 API : 6 routes (create + [id]/contribute + [id]/report + aria/reformulate + aria/fraud-check + stripe/webhook). Toutes auth + Zod + erreurs FR.
+- [x] P3.4 Pages : /cagnottes (grid filtrable + stats globales) + /cagnottes/nouvelle (wizard 4 steps avec Aria) + /cagnottes/[id] (hero + progression + split tracé + contributions + report)
+- [x] P3.5 /impact-mondial : MapLibre OSM tiles raster (0€) + Supabase realtime points + counters live + feed récent + fallback geocoding 18 villes
+- [x] P3.6 Build (24 routes, 0 erreur TS) + commit `d2b7f71` + push + deploy `kosha-i84131se4` + Stripe webhook prod créé `we_1TQ8cI4Y1unNvKtX6EtyfECR` + STRIPE_SECRET_KEY rotated + STRIPE_WEBHOOK_SECRET set + redeploy + endpoints verified
+
+**GATE P3 ✅** :
+- /api/stripe/webhook unsigned → 400 ✓
+- /api/cagnottes/create no auth → 401 ✓
+- /api/cagnottes/[id]/contribute no auth → 401 ✓
+- /api/aria/reformulate no auth → 401 ✓
+- /cagnottes → 307 (auth required) ✓
+- /impact-mondial → 307 (auth required) ✓
+- /api/status → DB ok ✓
+- Bundle MapLibre dynamique (ssr:false) — pas dans le shared chunk
+
+**Stripe webhook prod actif** : we_1TQ8cI4Y1unNvKtX6EtyfECR — 7 events (checkout.session.completed + 6 abos/invoice/refund)
 
 ---
 

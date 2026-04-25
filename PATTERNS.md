@@ -75,7 +75,55 @@
 - Tailwind 4 = CSS-config seul (pas de tailwind.config.ts)
 - `@theme inline { ... }` dans globals.css pour mapper variables
 - Turbopack par défaut pour dev + build (`next dev/build --turbopack`)
-- Build : 2.7s, 11 routes, 89.9 kB middleware
+- Build : 24 routes après P3, 89.9 kB middleware
 - Lib avec env vars → lazy init pattern (`let _client; function get() { if (!_client) _client = new ... }`) pour Turbopack qui évalue modules avant env vars
 - Stripe SDK v22 : `apiVersion: '2025-09-30.clover' as never` (Stripe.LatestApiVersion supprimé)
 - lucide-react v1.x : OK, exporte tous les icons (verified)
+- MapLibre 5.x : `dynamic(() => import('./MapLibreCanvas'), { ssr: false })` pour ne pas exploser le shared chunk
+- Always type-only import for libs without official types : `type X = typeof import('lib')` + minimal `.d.ts` declare module
+
+## Stripe checkout + webhook flow (P3 pattern)
+1. **Endpoint create session** (`/api/cagnottes/[id]/contribute/route.ts`) :
+   - Auth + Zod
+   - `stripe.checkout.sessions.create({ mode: 'payment', line_items: [...], metadata: { kind, ...ctx }, success_url, cancel_url })`
+   - Return `{ url, session_id }` → client `window.location.href = url`
+2. **Webhook** (`/api/stripe/webhook/route.ts`) :
+   - `req.text()` (raw body) — JAMAIS parser JSON avant
+   - `getStripe().webhooks.constructEvent(rawBody, sig, secret)`
+   - Idempotence : check `stripe_session_id` UNIQUE en DB AVANT insert
+   - Réponse 200 RAPIDE (< 5s), work async via `.catch()` non-bloquant
+3. **Trigger SQL post-insert** : tout le métier (split, fil_de_vie, impact_global) côté Postgres pour atomicité
+4. **Webhook secret** : créer endpoint via `curl POST api.stripe.com/v1/webhook_endpoints` → récupérer `whsec_...` → `vercel env add STRIPE_WEBHOOK_SECRET production` → redeploy
+
+## OpenTimestamps Bitcoin stamping (P3 pattern)
+- Lib `javascript-opentimestamps` (no @types — créer `.d.ts` minimal)
+- Hash payload canonique : `JSON.stringify({...keys triées})` + `crypto.createHash('sha256').digest('hex')`
+- Stamp async : `await stampHash(hash, { timeoutMs: 4000 })` — fallback graceful si calendar down
+- Block height pas dispo immédiatement — upgrade via cron 1-6h plus tard
+- Persist `ots_proof_base64` et `ots_proof_upgraded_base64` séparément
+- Verify : `verifyProof(proofBase64, expectedHashHex)` → return `{ valid, bitcoin_block_height, bitcoin_block_time }`
+
+## Trigger SQL avec multi-table updates (P3 pattern)
+- `SECURITY DEFINER` indispensable pour bypasser RLS dans les UPDATEs internes
+- Détecter "transition" via `OLD IS NULL OR OLD.status <> 'succeeded'` → ne pas re-fire si UPDATE sans changement
+- Gérer la chaîne : update raised_amount → upsert split → update impact_global → INSERT fil_de_vie (déclenche SOIT-MÊME le trigger after_fil_de_vie_insert pour score recompute)
+- Auto-completion : `status = CASE WHEN raised >= target THEN 'completed' ELSE status END`
+- Fil de Vie owner ajouté aussi si auto-completion atteint pendant cette transaction
+
+## RLS deny pour immutabilité (Fil de Vie + argent_memoire)
+- Pas de policy DELETE/UPDATE → deny par défaut
+- Service role peut bypasser (admin) mais user normal verrouillé
+- Permet de garantir traceability + transparence (BRIEF règle sacrée)
+
+## MapLibre tiles 0€ (P3 pattern)
+- Style raster OSM : `tile.openstreetmap.org/{z}/{x}/{y}.png`
+- Désaturation : `paint: { 'raster-saturation': -1, 'raster-brightness-min': 0.05, 'raster-brightness-max': 0.6, 'raster-opacity': 0.18 }`
+- Background layer #0A0A0F sous le raster pour cohérence palette
+- Disable scrollZoom + dragRotate pour UX paisible
+- Markers via DOM elements (pas symboles GL) → CSS animations natives, plus simple
+
+## Aria reformulation + fraud-check (P3 pattern)
+- `askAriaJSON<T>(systemPrompt, userMessage, { model, maxTokens })` retourne T parsé
+- Fallback graceful : try/catch → return version brute + `degraded: true`
+- Fraud freeze auto si recommendation === 'freeze' OR score >= 70
+- Toujours log fraud_signal pour audit + admin review

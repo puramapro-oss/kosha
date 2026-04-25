@@ -1,17 +1,20 @@
 # KOSHA — HANDOFF
 
-**Last session ended** : 2026-04-25 17:35
-**Phase completed** : P2 ✅
-**Next session** : P3 — VIDA CAGNOTTE (cœur financier — 5 types de cagnottes + Stripe + Treezor + Aria reformulation + carte mondiale)
+**Last session ended** : 2026-04-25 18:05
+**Phase completed** : P3 ✅ (VIDA CAGNOTTE livré + Stripe webhook prod actif)
+**Next session** : P4 — VIDA SOCIAL (feed inversé positif + cercles + stories rémunérées)
 **Resume command** : `cd ~/purama/kosha && claude --dangerously-skip-permissions --continue`
 
 ---
 
-## ✅ P1 + P2 livrés et live
+## ✅ P1 + P2 + P3 livrés et live
 - **Web** : https://kosha.purama.dev → 200
-- **GitHub** : https://github.com/puramapro-oss/kosha (commit `d1f94bd`)
+- **GitHub** : https://github.com/puramapro-oss/kosha (commit `d2b7f71`)
 - **Vercel** : puramapro-oss-projects/kosha
-- **DB** : schema `kosha` avec profiles + fil_de_vie + score_humanite_history + universe_personnel + onboarding_responses
+- **Latest deploy** : `kosha-i84131se4-puramapro-oss-projects.vercel.app`
+- **Build** : 24 routes, 0 erreur TS, 1 warning cosmétique
+- **DB** : schema `kosha` avec 12 tables (P1+P2+P3)
+- **Stripe webhook prod** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` (7 events)
 
 ## 📋 Prochaine session — protocole de reprise
 
@@ -19,8 +22,8 @@
 2. **Charger 5 skills Purama** : business + design-code + spiritual + purama-system + wealth-engine
 3. **Vérifier état** : `npm run build && npx tsc --noEmit` → confirmer 0 erreur
 4. **Vérifier live** : `curl -s https://kosha.purama.dev/api/status | grep -q "ok"`
-5. **Continuer P3** : commencer par lib/treezor.ts (stub) + lib/opentimestamps.ts + tables SQL cagnottes
-6. **NEVER** recoder ce qui marche en P1+P2
+5. **Continuer P4** : commencer par tables SQL posts/cercles/reactions, puis /feed (positif filtré IA)
+6. **NEVER** recoder ce qui marche en P1+P2+P3
 
 ---
 
@@ -30,19 +33,24 @@
 - Bundle mobile : `dev.purama.kosha`
 - IA : `Aria` (jamais "Claude" — see `src/lib/claude.ts` system prompt)
 - Vercel scope : `puramapro-oss-projects` (PAS `puramapro-oss` — c'est le perso)
-- Vercel env : `printf "valeur" | vercel env add NAME env --token "$VTOKEN" --scope puramapro-oss-projects --force`
+- Vercel env : `printf "valeur" | vercel env add NAME env --token "$VTOKEN" --scope puramapro-oss-projects`
 - VPS SSH : `sshpass -p '+Awy3cwg;NoutOTH' ssh root@72.62.191.111`
 - Postgres via : `docker exec -i supabase-db psql -U postgres -d postgres`
 - Auth via : `https://auth.purama.dev` (Kong proxy → GoTrue)
 - Google OAuth déjà actif (wildcard `*.purama.dev`)
+- **STRIPE_SECRET_KEY** authoritative = celle de `~/purama/CLAUDE-2.md` (l'autre `~/purama/.env.secrets` ...Ni7m est REVOKED)
+- **Stripe webhook KOSHA** : `we_1TQ8cI4Y1unNvKtX6EtyfECR` — secret `whsec_MgzeEOZw4D2YrbPDKKTD7p0P0eHt5F5l`
 
 ## ⚠️ Risques / TODO
-- ❗ UAT P1+P2 : Tissma doit signup en navigation privée → onboarding → score 5.0/10 + Fil de Vie 1 entry + click "Action 30s" → Fil de Vie 2 entries
-- TODO P3 : Treezor sandbox API key (stub `stub_phase_1_simulate_only` actuellement)
-- TODO P3 : MapTiler API key (peut utiliser tiles OSM publics gratuits en attendant)
-- TODO P3 : Stripe webhook secret (créer endpoint `/api/stripe/webhook` puis update env via CLI)
-- TODO P4 : VAPID Web Push keys
-- ⚠️ /profile bundle = 337 kB (Recharts) → P5 design polish : `dynamic({ssr:false})` pour code-splitting
+
+- ❗ **UAT P3** : Tissma doit créer 1 cagnotte (wizard 4 steps), faire un don test (Stripe test cards en mode live = risk pour vrai prélèvement — préférer 1€ réel sur cagnotte test puis refund), vérifier Fil de Vie + Impact Mondial map
+- ❗ **UAT P1+P2** toujours en attente
+- TODO P4 : VAPID Web Push keys (générer via `npx web-push generate-vapid-keys`)
+- TODO P4 : Tables posts/cercles/cercle_membres/reactions/story_rewards/silence_mode
+- TODO P5 : code-split Recharts + MapLibre dynamique (déjà fait pour MapLibre)
+- TODO P6 : Treezor live API key (post-SASU)
+- ⚠️ /profile bundle = 338 kB (Recharts) → P5 design polish
+- ⚠️ Vercel preview env : STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET pas synced (production OK)
 
 ## 📂 Files de planning (gitignored, secrets)
 - BRIEF.md, CLAUDE.md, CLAUDE-2.md, db/*.sql
@@ -52,120 +60,109 @@
 
 ---
 
-## 🎯 P3 — VIDA CAGNOTTE (preview, ~5h)
+## 🎯 P4 — VIDA SOCIAL (preview, ~4h)
 
-Cœur financier de KOSHA. 5 types de cagnottes avec Aria reformulation + Stripe checkout + Treezor split 70/15/5/10 + carte mondiale impact.
+Réseau social inversé : zéro toxicité, zéro likes, zéro followers. Énergie + gratitude + soutien comme seules réactions.
 
-### Tables SQL à créer (P3.1)
+### Tables SQL à créer (P4.1)
 ```sql
--- 5 types : communautaire | projet_vie | action_immediate | humanitaire | hybride
-CREATE TABLE kosha.cagnottes (
+-- posts : contenu positif uniquement (modération IA Aria)
+CREATE TABLE kosha.posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id UUID NOT NULL REFERENCES auth.users(id),
-  type TEXT NOT NULL CHECK (type IN ('communautaire', 'projet_vie', 'action_immediate', 'humanitaire', 'hybride')),
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  target_amount_cents BIGINT NOT NULL CHECK (target_amount_cents > 0),
-  raised_amount_cents BIGINT NOT NULL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'frozen', 'fraud_check', 'cancelled')),
-  ai_score_arnaque INT,                  -- 0-100, > 70 = freeze
-  ai_reformulation_done BOOLEAN DEFAULT FALSE,
-  image_url TEXT,
-  geolocation_geohash TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  ends_at TIMESTAMPTZ
-);
-
-CREATE TABLE kosha.cagnotte_contributions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  cagnotte_id UUID NOT NULL REFERENCES kosha.cagnottes(id) ON DELETE CASCADE,
-  contributor_id UUID NOT NULL REFERENCES auth.users(id),
-  amount_cents BIGINT NOT NULL CHECK (amount_cents > 0),
-  message TEXT,
-  anonymous BOOLEAN DEFAULT FALSE,
-  paid_via TEXT NOT NULL CHECK (paid_via IN ('stripe', 'treezor')),
-  stripe_payment_id TEXT,
-  treezor_transaction_id TEXT,
-  status TEXT NOT NULL DEFAULT 'pending',
+  author_id UUID NOT NULL REFERENCES auth.users(id),
+  cercle_id UUID REFERENCES kosha.cercles(id), -- nullable si post public
+  content TEXT NOT NULL CHECK (length(content) BETWEEN 10 AND 2000),
+  ai_moderation_score INT,                  -- 0-100, > 70 = bloqué
+  ai_moderation_reason TEXT,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('pending_review','published','blocked','deleted')),
+  type TEXT CHECK (type IN ('text','story','milestone','gratitude')),
+  media_url TEXT,
+  reactions_count INT NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Split 70/15/5/10 (BRIEF §3 module 2)
-CREATE TABLE kosha.cagnotte_splits (
-  cagnotte_id UUID PRIMARY KEY REFERENCES kosha.cagnottes(id) ON DELETE CASCADE,
-  projet_amount_cents BIGINT DEFAULT 0,        -- 70%
-  contributors_amount_cents BIGINT DEFAULT 0,  -- 15%
-  securite_amount_cents BIGINT DEFAULT 0,      -- 5%
-  fonds_vida_amount_cents BIGINT DEFAULT 0,    -- 10% (dont 5% Asso)
+-- cercles : groupes thématiques max 12 membres (BRIEF — Communauté d'amour)
+CREATE TABLE kosha.cercles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL CHECK (length(name) BETWEEN 3 AND 60),
+  intention TEXT NOT NULL CHECK (length(intention) BETWEEN 10 AND 500),
+  created_by UUID NOT NULL REFERENCES auth.users(id),
+  max_members INT NOT NULL DEFAULT 12 CHECK (max_members BETWEEN 3 AND 24),
+  visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','private')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE kosha.cercle_membres (
+  cercle_id UUID NOT NULL REFERENCES kosha.cercles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('member','captain')),
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+  streak_days INT DEFAULT 0,
+  PRIMARY KEY (cercle_id, user_id)
+);
+
+-- reactions : 3 types uniquement (energie/gratitude/soutien)
+CREATE TABLE kosha.reactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES kosha.posts(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id),
+  type TEXT NOT NULL CHECK (type IN ('energie','gratitude','soutien')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (post_id, user_id, type)
+);
+
+-- story_rewards : auto-rémunération stories d'évolution
+CREATE TABLE kosha.story_rewards (
+  story_post_id UUID PRIMARY KEY REFERENCES kosha.posts(id),
+  reward_cents INT DEFAULT 0,
+  paid_via TEXT,
+  paid_at TIMESTAMPTZ
+);
+
+-- silence_mode : Mode Silence (BRIEF — Notifications IA adaptées)
+CREATE TABLE kosha.silence_mode (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  start_hour INT CHECK (start_hour BETWEEN 0 AND 23),
+  end_hour INT CHECK (end_hour BETWEEN 0 AND 23),
+  days_of_week INT[] DEFAULT '{0,1,2,3,4,5,6}',
+  paused_until TIMESTAMPTZ,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- "Argent à mémoire" — chaque don a une trace blockchain BTC
-CREATE TABLE kosha.argent_memoire (
-  contribution_id UUID PRIMARY KEY REFERENCES kosha.cagnotte_contributions(id),
-  from_user_id UUID,
-  to_cagnotte_id UUID,
-  action_label TEXT,
-  amount_cents BIGINT,
-  ots_proof_url TEXT,                          -- OpenTimestamps proof
-  bitcoin_block_height INT,
-  stamped_at TIMESTAMPTZ
-);
-
-CREATE TABLE kosha.fraud_signals (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  cagnotte_id UUID REFERENCES kosha.cagnottes(id),
-  signal_type TEXT CHECK (signal_type IN ('ai_detected', 'community_reported', 'stripe_radar')),
-  severity INT CHECK (severity BETWEEN 1 AND 10),
-  details JSONB,
-  resolved BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Compteurs live (BRIEF §3 module 6)
-CREATE TABLE kosha.impact_global (
-  id INT PRIMARY KEY DEFAULT 1,
-  kg_dechets BIGINT DEFAULT 0,
-  arbres BIGINT DEFAULT 0,
-  l_eau BIGINT DEFAULT 0,
-  personnes BIGINT DEFAULT 0,
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  CHECK (id = 1)
-);
+-- ALTER PUBLICATION supabase_realtime ADD TABLE kosha.posts, kosha.reactions, kosha.cercles, kosha.cercle_membres;
 ```
 
-### Lib files (P3.2)
-- `src/lib/treezor.ts` — stub createTreezorUser, splitPayout (Phase 1 = log + simulate)
-- `src/lib/opentimestamps.ts` — `stampHash(sha256)` via lib `javascript-opentimestamps` (déjà installé), `verifyProof()`
-- `src/lib/cagnottes.ts` — calculateSplit(amount), validateCagnotte (Zod schema)
+### Pages (P4.2-P4.6)
+- `/feed` — feed positif filtré, 0 likes, 0 followers, 3 réactions max
+- `/cercles` — grid cercles + bouton "Ouvrir un cercle"
+- `/cercles/[id]` — chat + activité + membres + intention
+- `/stories` — full-screen swipe vertical (TikTok-style mais positif)
+- `/silence` — config Mode Silence calendrier
 
-### Pages (P3.3-P3.6)
-- `/cagnottes` — grid filtrable (type, raised %, deadline)
-- `/cagnottes/nouvelle` — wizard 4 steps : type → titre/description → image + Aria reformulation → confirmation
-- `/cagnottes/[id]` — détail + barre progression realtime + bouton contribuer (Stripe Checkout)
-- `/impact-mondial` — MapLibre + tiles MapTiler (ou OSM publics) + points lumineux temps réel via Supabase realtime
+### API
+- `POST /api/posts/create` — Aria modère AVANT publication
+- `POST /api/posts/[id]/react` — toggle reaction (3 types max)
+- `POST /api/cercles/create` + `/api/cercles/[id]/join`
+- `POST /api/silence/update`
 
-### API routes
-- `POST /api/cagnottes/create` — Zod + Aria reformulation (Sonnet)
-- `POST /api/cagnottes/[id]/contribute` — Stripe Checkout Session (lance redirect)
-- `POST /api/stripe/webhook` — `checkout.session.completed` → log contribution + déclenche split + INSERT fil_de_vie + INSERT argent_memoire (OTS stamp)
-- `POST /api/treezor/split` — stub Phase 1 (log uniquement) / Phase 2 vraie split SEPA
-- `POST /api/cagnottes/[id]/report` — signalement communautaire
-- `POST /api/aria/fraud-check` — Aria score 0-100 (Haiku rapide)
+### Lib
+- `src/lib/moderation.ts` — `moderatePost(text)` via Aria Haiku → score 0-100
+- `src/lib/silence.ts` — `isInSilenceWindow(userId)` check timezone
 
-### GATE P3
-- 1 cagnotte test créable end-to-end
-- Stripe checkout test (carte 4242) → contribution loggée + split calculé
-- Aria reformulation testée sur 1 cagnotte
-- Carte mondiale charge avec ≥1 point lumineux
-- Anti-fraude : cagnotte avec mots-clés "URGENT URGENT BTC" → freeze auto
+### GATE P4
+- Post comparatif/négatif/FOMO → bloqué auto par Aria
+- 3 réactions seulement (energie/gratitude/soutien)
+- Silence Mode bloque vraiment les notifs
+- Cercle ne peut dépasser 12 membres
 
-### Risques P3
-- Treezor : stub mode (vraie clé post-SASU). Logger les transactions simulées dans une table `treezor_simulated`.
-- Stripe webhook : doit être créé manuellement via API curl + envoyer secret dans Vercel via CLI (V7.2 §17 + §37)
-- OpenTimestamps : peut être lent (call API publique) → async background, log entry sans attendre proof Bitcoin (qui peut prendre 1h)
+### Risques P4
+- Moderation IA peut être trop stricte → seuil tunable (commencer à 60 plutôt que 70)
+- VAPID keys à générer ET ajouter via vercel env (CLI uniquement)
+- Stories full-screen = re-design header conditionnel
+- Realtime sur posts → /feed se met à jour en live
 
 ### Notes de session
-- Si > 50% context → /compact entre P3.X et P3.X+1
-- Si > 60% → handoff intermédiaire P3 partiel
-- Estimated 5h (le plus gros phase, peut nécessiter 2 sessions)
+- Si > 50% context → /compact entre P4.X et P4.X+1
+- Si > 60% → handoff intermédiaire P4 partiel
+- Estimated 4h
