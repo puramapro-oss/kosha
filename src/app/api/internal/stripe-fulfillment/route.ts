@@ -1,6 +1,7 @@
 /**
- * POST /api/stripe/webhook
- * Reçoit les événements Stripe. Vérifie la signature avec STRIPE_WEBHOOK_SECRET.
+ * POST /api/internal/stripe-fulfillment
+ * Reçoit les événements Stripe VÉRIFIÉS par karma (dispatcher central).
+ * Authentifié par INTERNAL_WEBHOOK_SECRET + re-vérifie signature Stripe (défense en profondeur).
  *
  * Événements gérés :
  *   - checkout.session.completed : si metadata.kind = cagnotte_contribution
@@ -19,12 +20,20 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
-  const sig = req.headers.get('stripe-signature')
+  // 1. Vérif secret interne partagé w/ karma
+  const internalSecret = req.headers.get('x-internal-secret')
+  if (internalSecret !== process.env.INTERNAL_WEBHOOK_SECRET) {
+    console.warn('[stripe-fulfillment] invalid internal secret')
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  }
+
+  // 2. Défense en profondeur : re-vérifier signature Stripe
+  const sig = req.headers.get('x-stripe-signature')
   const secret = process.env.STRIPE_WEBHOOK_SECRET
   const rawBody = await req.text()
 
   if (!sig || !secret) {
-    console.warn('[stripe/webhook] missing signature or secret')
+    console.warn('[stripe-fulfillment] missing signature or secret')
     return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
   }
 
@@ -32,7 +41,7 @@ export async function POST(req: NextRequest) {
   try {
     event = getStripe().webhooks.constructEvent(rawBody, sig, secret)
   } catch (e) {
-    console.warn('[stripe/webhook] signature verification failed', e instanceof Error ? e.message : e)
+    console.warn('[stripe-fulfillment] signature verification failed', e instanceof Error ? e.message : e)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 

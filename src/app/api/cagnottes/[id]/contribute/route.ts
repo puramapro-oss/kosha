@@ -73,6 +73,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
         contributor_id: user.id,
         anonymous: body.anonymous ? '1' : '0',
         message: (body.message ?? '').slice(0, 280),
+        app_slug: 'kosha',
       },
       success_url: `${APP_URL}/cagnottes/${cagnotteId}?contribution=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/cagnottes/${cagnotteId}?contribution=cancelled`,
