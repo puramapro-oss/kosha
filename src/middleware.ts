@@ -9,6 +9,10 @@ const PUBLIC_PATHS = [
   '/mentions-legales', '/politique-confidentialite', '/cgv', '/cgu',
   '/aide', '/contact', '/accessibilite', '/forgot-password',
   '/manifeste',
+  // Routes de metadata générées par Next.js (og:image, favicon…) —
+  // doivent rester publiques pour que les crawlers (Facebook, Twitter,
+  // Slack, LinkedIn) puissent les récupérer sans session.
+  '/opengraph-image', '/twitter-image', '/icon', '/apple-icon',
 ]
 
 function isPublicPath(pathname: string): boolean {
