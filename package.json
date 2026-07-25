@@ -60,5 +60,9 @@
   },
   "optionalDependencies": {
     "@parcel/watcher": "^2.6.0"
+  },
+  "overrides": {
+    "crypto-js": "^4.2.0",
+    "form-data": "^4.0.4"
   }
 }
