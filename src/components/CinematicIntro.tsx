@@ -117,7 +117,7 @@ export default function CinematicIntro({ onComplete }: Props) {
         <p className="text-white/40 text-xs uppercase tracking-[0.3em]">L&apos;univers où agir = être payé</p>
       </div>
       <span className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/30 text-xs uppercase tracking-wider">
-        Tape Échap pour passer
+        Touche Échap ou tape l&apos;écran pour passer
       </span>
     </button>
   )
