@@ -35,6 +35,7 @@ export default function CagnotteContributePanel({
             amount_cents: Math.round(amount * 100),
             message: message.trim() || null,
             anonymous,
+            idempotency_key: crypto.randomUUID(),
           }),
         })
         const data = await res.json()

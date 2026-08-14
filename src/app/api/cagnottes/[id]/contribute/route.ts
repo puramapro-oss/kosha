@@ -77,7 +77,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       },
       success_url: `${APP_URL}/cagnottes/${cagnotteId}?contribution=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/cagnottes/${cagnotteId}?contribution=cancelled`,
-    })
+    }, { idempotencyKey: body.idempotency_key ?? crypto.randomUUID() })
   } catch (e) {
     console.error('[cagnottes/contribute] stripe error', e)
     return NextResponse.json({ error: 'Stripe indisponible. Réessaie dans un instant.' }, { status: 502 })

@@ -109,6 +109,7 @@ export const CagnotteContributeSchema = z.object({
     .max(100_000_000, 'Maximum 1 000 000€.'),
   message: z.string().trim().max(280, 'Maximum 280 caractères.').optional().nullable(),
   anonymous: z.boolean().default(false),
+  idempotency_key: z.string().uuid().optional(),
 })
 export type CagnotteContributeInput = z.infer<typeof CagnotteContributeSchema>
 
