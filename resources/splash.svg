@@ -1,0 +1,15 @@
+<svg width="2732" height="2732" viewBox="0 0 2732 2732" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg2" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0A0A0F" />
+    </radialGradient>
+    <linearGradient id="text2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="#0A0A0F" />
+  <rect width="2732" height="2732" fill="url(#bg2)" />
+  <text x="1366" y="1480" font-family="system-ui, -apple-system, sans-serif" font-size="280" font-weight="700" text-anchor="middle" fill="url(#text2)">KOSHA</text>
+</svg>

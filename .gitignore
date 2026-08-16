@@ -55,3 +55,7 @@ e2e/logs/
 
 # Claude Code local state
 .claude/
+
+# Capacitor mobile platforms (regenerated in CI — MOBILE.md §3.2)
+/ios
+/android
