@@ -41,6 +41,7 @@ jobs:
       - name: Scaffold Android platform (Capacitor)
         run: |
           npx cap add android
+          mkdir -p android/app/src/main/assets
           npx cap sync android
 
       - name: Generate icons + splash
