@@ -130,14 +130,14 @@ export type PlanId = keyof typeof PLANS
 
 // ──────────────────────────────────────────────────────────────────
 // Split CA mensuel (BRIEF §6 — Treezor SEPA, Phase 2 post-SASU)
-// 50% users (selon Score d'Humanité, cap 12 mois ancienneté)
-// 10% Asso PURAMA, 10% ADYA, 30% SASU PURAMA (0% IS ZFRR)
+// Split KARMA verrouillé FACTS.md / CLAUDE.md §9.1 : 50% users (selon Score
+// d'Humanité, cap 12 mois ancienneté), 10% Asso PURAMA, 40% SASU PURAMA (0% IS ZFRR).
+// Anciens splits 50/10/10/30 et 50/20/30 OBSOLÈTES — ne jamais les réintroduire.
 // ──────────────────────────────────────────────────────────────────
 export const CA_SPLIT = {
   users: 0.50,
   asso: 0.10,
-  adya: 0.10,
-  sasu: 0.30,
+  sasu: 0.40,
 } as const
 
 // ──────────────────────────────────────────────────────────────────

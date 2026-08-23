@@ -52,6 +52,8 @@ Les 4 pages font 22 lignes chacune et délèguent au composant `LegalPage` + bui
 
 **GAP mineur (ORANGE)** — `LegalReacceptanceGate` (`packages/legal/src/components/LegalReacceptanceGate.tsx`) : composant conçu pour bloquer l'usage de l'app quand une nouvelle version de CGU/CGV/confidentialité doit être re-acceptée (docstring ligne 20-25). Recherche exhaustive (`grep -rl "LegalReacceptanceGate" src/app src/components`) : **aucune app kosha ne l'importe** — seul le fichier source du package le référence. Aujourd'hui sans conséquence (toutes les versions sont `1.0`, `src/lib/legal/versions.ts`), mais le jour où une clause CGU change de version, les utilisateurs existants ne seront jamais invités à ré-accepter : la preuve horodatée resterait bloquée sur l'ancienne version sans que l'app ne le détecte ni ne le bloque. À câbler dans le layout `(dashboard)` avant tout futur bump de `CURRENT_LEGAL_VERSIONS`.
 
+**CORRIGÉ le 2026-08-23** : monté dans `src/app/(dashboard)/layout.tsx` (nouveau — il n'existait aucun layout partagé pour le groupe de routes `(dashboard)` avant cette correction). Le layout serveur récupère l'utilisateur, lit `legal_acceptances`, calcule `docsEnAttente` via `computeDocsEnAttente()` (`src/lib/legal/versions.ts`) et rend `LegalReacceptanceGateClient` (nouveau, `src/components/LegalReacceptanceGateClient.tsx`) qui monte `LegalReacceptanceGate` avec un `onAccept` réel (`POST /api/legal/accept` + `router.refresh()`). Couvre toutes les routes authentifiées (`actions, admin, aria, cagnottes, cercles, dashboard, feed, impact, impact-mondial, missions, onboarding, profile, rituels, settings, silence`) ; pour les visiteurs anonymes des pages `cagnottes/*` publiques (`middleware.ts` whitelist), le gate ne s'affiche pas (`{user && <LegalReacceptanceGateClient .../>}`). Sans effet visible aujourd'hui (toutes versions `1.0`) — se déclenchera automatiquement au premier bump de `CURRENT_LEGAL_VERSIONS`. `npx tsc --noEmit` et `npm run build` verts après le changement.
+
 ## 4. Page « Ma mémoire »
 
 **Fichier** : `src/app/(dashboard)/settings/ma-memoire/page.tsx` + `packages/legal/src/components/MaMemoirePage.tsx`.
@@ -95,6 +97,8 @@ Recherche mécanique sur tout le texte applicatif (`src/app`, `src/components`, 
 
 **Détail du gap** : `CA_SPLIT` (`src/lib/constants.ts:136-141`) code en dur `{ users: 0.50, asso: 0.10, adya: 0.10, sasu: 0.30 }` — c'est **exactement** le split `50/10/10/30` que `FACTS.md` et `CLAUDE.md §9.1` déclarent explicitement **OBSOLÈTE** au profit de `50/10/40`. Recherche d'usage (`grep -rln "CA_SPLIT" src`) : la constante n'est référencée nulle part hors de sa propre déclaration — elle n'est **pas câblée à un flux de paiement réel** (cohérent avec le commentaire ligne 132 "Phase 2 post-SASU" et le stub Treezor Phase 1, `src/lib/treezor.ts:3` "Aucune transaction réelle"). Aucun impact financier actif aujourd'hui, mais c'est un nombre business verrouillé codé en dur qui ne matche pas `FACTS.md` — par la règle même de `FACTS.md` ("Écart = CONFORMITE.md rouge, Pilier 19"), ceci doit être corrigé avant l'activation de la Phase 2 (sinon la redistribution réelle appliquera un split obsolète et non conforme à la dernière décision Tissma).
 
+**CORRIGÉ le 2026-08-23** : `src/lib/constants.ts:136-141` — `CA_SPLIT` aligné sur le split KARMA verrouillé `50/10/40` (`{ users: 0.50, asso: 0.10, sasu: 0.40 }`, clé `adya` supprimée). Vérifié sans usage ailleurs dans le code (`grep -rln "CA_SPLIT" src` → seule la déclaration) donc correction sans risque de régression. `npx tsc --noEmit` et `npm run build` verts après le changement.
+
 ## 8. Migration SQL légale
 
 **Documenté dans `ERRORS.md`** (`ERRORS.md:17-18`, entrée `2026-08-23`) :
@@ -128,9 +132,13 @@ Vérification live en base non effectuée par cet audit (lecture seule côté co
 
 ## Gaps à corriger
 
-1. **[MAJEUR]** `src/lib/constants.ts:132-141` — `CA_SPLIT` = `50/10/10/30` (obsolète selon FACTS.md/CLAUDE.md §9.1) → aligner sur `50/10/40` (ou supprimer `adya: 0.10` et redistribuer) avant toute activation Phase 2/Treezor réel.
-2. **[MINEUR]** `LegalReacceptanceGate` (package `@purama/legal`) jamais monté dans kosha → aucun blocage utilisateur en cas de bump futur de `CURRENT_LEGAL_VERSIONS`. À câbler dans `src/app/(dashboard)/layout.tsx` avant le premier changement de version CGU/CGV.
+1. **[MAJEUR] CORRIGÉ le 2026-08-23** : `src/lib/constants.ts:132-141` — `CA_SPLIT` = `50/10/10/30` (obsolète selon FACTS.md/CLAUDE.md §9.1) → aligné sur `50/10/40` (clé `adya` supprimée, `sasu` porté à `0.40`). Aucun code appelant à mettre à jour (constante non câblée). `tsc`+`build` verts.
+2. **[MINEUR] CORRIGÉ le 2026-08-23** : `LegalReacceptanceGate` (`src/lib/legal/components/`) jamais monté dans kosha → câblé dans un nouveau `src/app/(dashboard)/layout.tsx` (+ `src/components/LegalReacceptanceGateClient.tsx` pour le `onAccept` client). Se déclenche dès le premier bump de `CURRENT_LEGAL_VERSIONS`. `tsc`+`build` verts.
 
 ---
 
-VERDICT:kosha:ORANGE:2
+## RÉ-AUDIT — 2026-08-23 (remédiation)
+
+Les 2 gaps ORANGE ont été corrigés le jour même de l'audit (§ ci-dessus, détails aux sections 3 et 7). Périmètre de la remédiation strictement limité aux 2 gaps documentés — aucun autre fichier touché. `npx tsc --noEmit` : 0 erreur. `npm run build` : succès (toutes les routes `(dashboard)` compilées, y compris la nouvelle `layout.tsx`). Un troisième fichier (`package.json`) était déjà modifié dans l'arbre de travail avant cette remédiation (suppression de la dépendance locale `@purama/smarana`, sans lien avec NIYAMA) — non touché, non inclus dans le commit de remédiation.
+
+VERDICT:kosha:VERT:0 (était ORANGE:2, 2/2 gaps corrigés le 2026-08-23)
