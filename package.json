@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
+    "@purama/smarana": "file:../packages/smarana",
+    "pg": "^8.22.0",
     "@capacitor/android": "^7.6.8",
     "@capacitor/app": "^7.1.2",
     "@capacitor/cli": "^7.6.8",
@@ -55,11 +57,13 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@purama/eslint-config": "file:../packages/eslint-config-purama",
     "@eslint/eslintrc": "^3",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
