@@ -110,3 +110,24 @@ export function listScreenshots(): string[] {
   if (!fs.existsSync(dir)) return []
   return fs.readdirSync(dir).filter((f) => f.endsWith('.png'))
 }
+
+/** Cleanup complet d'un tableau de users UAT (profiles + cascading + auth). */
+export async function cleanupUatUsers(users: Array<{ id?: string; email?: string }>) {
+  log('🧹 Cleanup users UAT')
+  for (const u of users) {
+    if (!u?.id) continue
+    try {
+      const admin = adminClient()
+      await admin.from('cagnotte_contributions').delete().eq('contributor_id', u.id)
+      await admin.from('reactions').delete().eq('user_id', u.id)
+      await admin.from('posts').delete().eq('author_id', u.id)
+      await admin.from('cagnottes').delete().eq('owner_id', u.id)
+      await admin.from('cercles').delete().eq('created_by', u.id)
+      await admin.from('cercle_membres').delete().eq('user_id', u.id)
+      await deleteUatUser(u.id)
+      log(`✅ cleanup ${u.email}`)
+    } catch (e) {
+      log(`⚠️ cleanup ${u.email} partial: ${(e as Error).message}`)
+    }
+  }
+}

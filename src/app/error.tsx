@@ -11,7 +11,6 @@ export default function ErrorBoundary({
   reset: () => void
 }) {
   useEffect(() => {
-    // TODO P11 : log to Sentry once configured
     console.error('[KOSHA error]', error)
   }, [error])
 

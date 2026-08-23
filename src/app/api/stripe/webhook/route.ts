@@ -72,7 +72,7 @@ async function handleCagnotteContribution(
     .maybeSingle()
 
   if (existing) {
-    console.log('[stripe/webhook] duplicate session, skipping', session.id)
+    console.warn('[stripe/webhook] duplicate session, skipping', session.id)
     return
   }
 
