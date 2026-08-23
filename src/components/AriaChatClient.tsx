@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Send, Sparkles, ArrowLeft, Trash2 } from 'lucide-react'
+import { AIDisclosure } from '@/lib/legal'
+import { APP_NAME } from '@/lib/constants'
 
 interface ChatMessage {
   id: string
@@ -229,6 +231,8 @@ export default function AriaChatClient({
           <Trash2 className="w-4 h-4" />
         </button>
       </header>
+
+      <AIDisclosure appName={APP_NAME} className="text-center text-[11px] text-white/35 py-2 px-4 border-b border-white/[0.04]" />
 
       {/* Messages scroll area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6">

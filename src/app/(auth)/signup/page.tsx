@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { APP_NAME } from '@/lib/constants'
+import { LegalAcceptanceNotice } from '@/lib/legal'
+import { ACCEPTABLE_DOC_TYPES } from '@/lib/legal-config'
 
 const ERROR_MESSAGES: Record<string, string> = {
   user_already_exists: 'Un compte existe déjà avec cet email. Connecte-toi.',
@@ -56,7 +58,16 @@ function SignupForm() {
           return
         }
         if (data.session) {
-          // autoconfirm enabled VPS — go directly
+          // autoconfirm enabled VPS — go directly ; enregistre la preuve d'acceptation (fire-and-forget)
+          Promise.all(
+            ACCEPTABLE_DOC_TYPES.map((docType) =>
+              fetch('/api/legal/accept', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ docType }),
+              })
+            )
+          ).catch(() => {})
           router.push('/dashboard')
           router.refresh()
         } else {
@@ -180,6 +191,8 @@ function SignupForm() {
             />
           </label>
 
+          <LegalAcceptanceNotice actionLabel="Créer mon compte" />
+
           <button
             type="submit"
             disabled={submitting || !email || !password || !fullName}
@@ -189,13 +202,7 @@ function SignupForm() {
           </button>
         </form>
 
-        <p className="mt-6 text-xs text-white/40 leading-relaxed">
-          En créant un compte, tu acceptes nos{' '}
-          <Link href="/cgu" className="underline hover:text-white/70">CGU</Link>
-          {' '}et notre{' '}
-          <Link href="/privacy" className="underline hover:text-white/70">politique de confidentialité</Link>.
-          16 ans minimum (DSA UE).
-        </p>
+        <p className="mt-6 text-xs text-white/40 leading-relaxed">16 ans minimum (DSA UE).</p>
 
         <div className="mt-4 text-center text-sm">
           <span className="text-white/50">Déjà un compte ? </span>

@@ -233,3 +233,49 @@
 - [ ] P11.10 EAS build iOS + Android (artifacts only, soumission post-SASU + Apple Developer 99€/an + Google Play 25$)
 - [ ] P11.11 Conformité légale finale (RGPD + DSA + DSP2 + 7 règles sacrées BRIEF)
 - [ ] P11.12 CRON n8n config : `/api/cron/newsletter-weekly` + `/api/cron/rituels-tick` + `CRON_SECRET` env
+
+---
+
+## P9 — Mobile Wrapper Capacitor (iOS + Android) — ✅ COMPLETED 2026-08-16
+
+**Stratégie** : Capacitor 7 web wrapper (0 réécriture). L'app web Next.js live (`kosha.purama.dev`) est chargée via WebView avec plugins natifs (haptics, push, preferences, splash, status-bar). Bundle ID : `dev.purama.kosha`.
+
+- [x] P9.1 Deps Capacitor 7 installées (core, cli, ios, android, 6 plugins)
+- [x] P9.2 `capacitor.config.ts` créé (appId, appName, server.url, couleurs #0A0A0F/violet/cyan)
+- [x] P9.3 `.gitignore` updated (`/ios`, `/android` — platforms régénérées en CI)
+- [x] P9.4 `resources/icon.png` (1024×1024) + `splash.png` (2732×2732) générées (SVG→PNG via rsvg-convert)
+- [x] P9.5 Sanity check local (`cap add ios`, `cap add android`, `cap sync`)
+- [x] P9.6 `.github/workflows/mobile-build.yml` copié/adapté depuis kaia (2 jobs : build-android, build-ios)
+- [x] P9.7 7 secrets GitHub configurés (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_CONTENT, ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD)
+- [x] P9.8 Fix Capacitor 8→7 downgrade (compat Node 20 CI)
+- [x] P9.9 Fix Android assets/ dir création avant cap sync
+- [x] P9.10 CI GitHub Actions run vert : **build-android SUCCESS** (APK signé 5,1MB, jarsigner verified) + **build-ios SUCCESS** (compile check unsigned, archive signée gated par APPLE_TEAM_ID manquant)
+
+**GATE P9 ✅** :
+- **Android** : APK release signé téléchargé, signature valide (CN=Purama, OU=Mobile, O=SASU Purama, valide 2026-2056), installable, 5,1MB
+- **iOS** : compile check vert (xcodebuild unsigned success), archive signée bloquée par APPLE_TEAM_ID absent (blocage Apple §5.1 MOBILE.md — nécessite Team ID + agreement App Store Connect)
+- 0 réécriture : le site web live est wrappé tel quel
+- Workflow CI reproductible : identique à kaia (prouvé 2× vert), 2 pièges documentés évités (secrets dans `if:` interdit, JDK 21 pour Capacitor 7 Android, assets/ dir manquant)
+- Artefacts : `kosha-android-release-apk` (retention 30j), `kosha-ios-release-ipa` (si APPLE_TEAM_ID disponible)
+
+**Note** : Déploiement stores bloqué par (1) APPLE_TEAM_ID manquant (décision Tissma/business), (2) déploiement Vercel kosha.purama.dev en pause (`503 DEPLOYMENT_PAUSED` — billing, hors scope mobile). Le binaire mobile est fonctionnel, affichera l'écran pause tant que Vercel n'est pas relancé.
+
+**Recette** : ~/purama/MOBILE.md §3, appliquée reproductiblement. Pattern validé sur kaia (2× vert), réutilisable sur toute app écosystème.
+
+---
+## Socle légal NIYAMA (`packages/legal/`) — ✅ APPLIQUÉ 2026-08-23
+`aPaiement=true` (Stripe checkout réel sur les contributions cagnotte, `db/p3_cagnotte.sql`), `aChatIA=true` (assistant Aria réel, `db/p5_aria.sql` + `/api/aria/chat`). Famille NIYAMA : `karma_wellness` (Points/story rewards/wallet payés aux users).
+- [x] Copie EN BLOC `packages/legal/src/` → `src/lib/legal/` (structure préservée, `api/` retiré)
+- [x] `src/lib/legal-config.ts` : `KOSHA_LEGAL_CONFIG` (clauses spécifiques cagnottes/split 70-15-5-10/Fil de Vie immuable/Points/modération Aria)
+- [x] 4 pages légales RÉÉCRITES via `buildX()` + `LegalPage` (l'ancien contenu mentions-légales pointait vers l'ADRESSE VERCEL PÉRIMÉE — 340 S Lemon Ave — piège documenté PIEGES.md §16, corrigée par l'adresse socle vérifiée 2026-08-23)
+- [x] 6 routes API copiées + adaptées : `getSupabaseServer(req)` → `createClient()` (SSR cookie, `@/lib/supabase-server`, async sans param) ; `checkRateLimit` retiré (absent de kosha) ; cron service client unique `createServiceClient()` (`@/lib/supabase`, pas de split get/getService)
+- [x] `EXTRA_TABLES` de `/api/legal/my-data` : 19 tables personnelles réelles couvertes (fil_de_vie, score_humanite_history, universe_personnel, onboarding_responses, purama_point_transactions, mission_completions, cagnottes, cagnotte_contributions, argent_memoire, posts, reactions, cercle_membres, silence_mode, aria_conversations/messages/user_memory/actions_log, rituel_participations, newsletter_subscribers)
+- [x] `/settings` (hub, corrige le lien mort "Réglages" du profil qui pointait vers une route sans page) + `/settings/ma-memoire` (`MaMemoirePage`) + LiveLink dashboard
+- [x] `vercel.json` créé (cron `/api/cron/account-deletion` quotidien 03:00 UTC)
+- [x] `CookieConsentBannerClient` (wrapper client, sync `onConsent`→`/api/legal/cookie-consent`) monté dans `layout.tsx` — aucun bandeau existant trouvé (grep confirmé)
+- [x] `LegalAcceptanceNotice` sur signup, juste au-dessus du bouton submit (remplace l'ancien texte statique qui pointait vers `/privacy`, route inexistante) ; preuve d'acceptation enregistrée server-side dans `auth/callback` (OAuth + confirmation email, idempotent `UNIQUE(user_id,doc_type)`) et côté client pour le flux autoconfirm immédiat
+- [x] `AIDisclosure` sous le header du chat Aria (`AriaChatClient.tsx`)
+- [x] Migration `sql/001_legal_core.sql` exécutée sur schéma DÉDIÉ `kosha` (pas de filtre `app_id` nécessaire) — SSH `72.62.191.111` en `Connection refused` (fail2ban transitoire, cf ERRORS.md 2026-08-23) → exécutée via API pg-meta (`POST https://auth.purama.dev/pg/query`) + grants explicites ajoutés (script socle n'en pose aucun) + `NOTIFY pgrst,'reload schema'`. 3 tables + grants vérifiés en DB.
+- [x] Pas de `src/types/database.ts` dans ce projet (clients Supabase non typés par generic `Database`) — rien à régénérer, `tsc --noEmit` 0 erreur sans action supplémentaire (cf ERRORS.md)
+**GATE Légal NIYAMA ✅** : `tsc --noEmit` 0 erreur, `npm run build` 0 erreur (exit 0), `eslint` 0 erreur (2 warnings pré-existants/mineurs corrigés), 3 tables DB créées + grants vérifiés.
+

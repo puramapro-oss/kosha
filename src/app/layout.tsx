@@ -5,6 +5,7 @@ import { getLocale, getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { APP_NAME, APP_URL, APP_TAGLINE, APP_PROMISE } from '@/lib/constants'
+import CookieConsentBannerClient from '@/components/CookieConsentBannerClient'
 
 const sora = Sora({
   variable: '--font-display',
@@ -72,6 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${sora.variable} ${dmSans.variable} ${jetbrainsMono.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          <CookieConsentBannerClient />
           <Toaster
             position="top-center"
             theme="dark"
