@@ -8,8 +8,8 @@
  *
  * Pipeline :
  * 1. Auth + valide conversation appartient au user
- * 2. INSERT message user
- * 3. Charge profil + mémoire + 20 derniers messages → compose system prompt
+ * 2. Charge profil, mémoire et les messages récents, puis ajoute la demande courante au contexte
+ * 3. Enregistre le message utilisateur avant d'appeler le modèle
  * 4. Stream Anthropic SDK → écrit chunks SSE + assemble la réponse
  * 5. INSERT message assistant final + log aria_actions_log
  * 6. Si conversation a >=5 assistant messages et title est null → auto-génère titre Haiku
@@ -27,6 +27,7 @@ import {
   MODEL_FAST,
 } from '@/lib/claude'
 import { getUserMemory, memoryToSystemFragment } from '@/lib/aria-memory'
+import { getAriaHistory } from '@/lib/aria-history'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -76,38 +77,27 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'Conversation archivée.' }), { status: 410, headers: { 'Content-Type': 'application/json' } })
   }
 
-  // INSERT message user
-  await service.from('aria_messages').insert({
-    conversation_id: body.conversation_id,
-    user_id: user.id,
-    role: 'user',
-    content: body.message,
-  })
-
   // Charge profil + mémoire + historique
-  const [profileResult, memory, historyResult] = await Promise.all([
+  const [profileResult, memory, history] = await Promise.all([
     service
       .from('profiles')
       .select('full_name, plan, score_humanite, fil_de_vie_count, awakening_level')
       .eq('id', user.id)
       .maybeSingle(),
     getUserMemory(user.id),
-    service
-      .from('aria_messages')
-      .select('role, content')
-      .eq('conversation_id', body.conversation_id)
-      .order('created_at', { ascending: true })
-      .limit(40),
+    getAriaHistory(service, body.conversation_id, body.message),
   ])
+  if (!history) return Response.json({ error: 'Historique indisponible.' }, { status: 503 })
+
+  const { error: saveUserError } = await service.from('aria_messages').insert({
+    conversation_id: body.conversation_id,
+    user_id: user.id,
+    role: 'user',
+    content: body.message,
+  })
+  if (saveUserError) return Response.json({ error: 'Message non enregistré.' }, { status: 503 })
 
   const profile = profileResult.data ?? {}
-  const fullHistory = (historyResult.data ?? []).filter((m) => m.role === 'user' || m.role === 'assistant') as Array<{
-    role: 'user' | 'assistant'
-    content: string
-  }>
-
-  // Limite à 20 derniers échanges (40 messages user/assistant) pour cap tokens
-  const history = fullHistory.slice(-40)
 
   // Detecte mode silence
   const { data: silence } = await service
@@ -172,7 +162,7 @@ export async function POST(req: NextRequest) {
         }
 
         // INSERT message assistant final
-        const { data: assistantMsg } = await service
+        const { data: assistantMsg, error: saveReplyError } = await service
           .from('aria_messages')
           .insert({
             conversation_id: body.conversation_id,
@@ -185,6 +175,7 @@ export async function POST(req: NextRequest) {
           })
           .select('id')
           .single()
+        if (saveReplyError || !assistantMsg) throw new Error('Réponse non enregistrée.')
 
         // Log action chat
         await service.from('aria_actions_log').insert({
@@ -226,7 +217,7 @@ export async function POST(req: NextRequest) {
         }
 
         send('done', {
-          messageId: assistantMsg?.id ?? null,
+          messageId: assistantMsg.id,
           model: modelTag(model),
           tokensIn,
           tokensOut,
